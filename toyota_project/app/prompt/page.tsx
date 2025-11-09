@@ -31,10 +31,7 @@ export default function PromptPage() {
   const [typedText, setTypedText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  /**
-   * Process the description (either from text input or voice)
-   * Sends the description to the Gemini API and navigates to results
-   */
+ 
   const processDescription = async (description: string) => {
     if (!description.trim()) return
 
@@ -73,42 +70,31 @@ export default function PromptPage() {
     }
   }
 
-  /**
-   * Handle form submission for text input
-   */
+ 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await processDescription(input)
   }
 
-  /**
-   * Handle voice transcript
-   * Automatically processes the description when speech is recognized
-   */
+  
   const handleVoiceTranscript = async (transcript: string) => {
     console.log("[PromptPage] Voice transcript received:", transcript)
     // Automatically process the voice input
     await processDescription(transcript)
   }
 
-  /**
-   * Handle voice input errors
-   */
+  
   const handleVoiceError = (errorMessage: string) => {
     setError(errorMessage)
   }
 
-  /**
-   * Toggle between voice and text input modes
-   */
+  
   const toggleInputMode = () => {
     setIsVoiceMode(!isVoiceMode)
     setError("") // Clear any errors when switching modes
   }
 
-  /**
-   * Typing animation effect for example prompts
-   */
+  
   useEffect(() => {
     const currentPrompt = examplePrompts[currentIndex]
     let timeoutId: NodeJS.Timeout

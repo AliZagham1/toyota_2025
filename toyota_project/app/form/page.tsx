@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2 } from "lucide-react"
 import type { CarFilters } from "@/types"
 
-// Available options/features
+
 const VEHICLE_OPTIONS = [
   "3rd Row Seat",
   "Alloy Wheels",
@@ -122,7 +122,7 @@ export default function FormPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-12">
         <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in">
-          {/* Basic Information */}
+      
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -201,7 +201,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Pricing & Mileage */}
+         
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -262,7 +262,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Appearance & Interior */}
+        
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -312,7 +312,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Performance & Drivetrain */}
+       
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -409,7 +409,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Vehicle Status */}
+         
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -433,7 +433,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Features/Options */}
+         
           <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
             <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
               <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
@@ -459,7 +459,7 @@ export default function FormPage() {
             </div>
           </div>
 
-          {/* Submit */}
+        
           <div className="flex gap-3 justify-between pt-6 border-t border-border">
             <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
               Back

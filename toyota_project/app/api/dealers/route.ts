@@ -1,17 +1,17 @@
-// In your api/dealers/route.ts file
+
 
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    // --- 1. RECEIVE 'make' FROM THE REQUEST ---
+
     const { lat, lng, make, radiusMeters = 10000 } = await req.json();
 
     if (typeof lat !== "number" || typeof lng !== "number") {
       return NextResponse.json({ error: "lat and lng are required numbers" }, { status: 400 });
     }
 
-    // --- 2. ADD VALIDATION FOR 'make' ---
+    
     if (typeof make !== "string" || make.trim() === "") {
       return NextResponse.json({ error: "'make' is required" }, { status: 400 });
     }
@@ -21,19 +21,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing GOOGLE_API_KEY" }, { status: 500 });
     }
 
-    // --- 3. CREATE A DYNAMIC SEARCH QUERY ---
+   
     const searchQuery = `${make} Dealer`;
 
-    // Nearby Search: [Make] Dealer within radius
+  
     const url = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
     
-    // --- 4. USE THE DYNAMIC QUERY ---
+   
     url.searchParams.set("keyword", searchQuery);
     url.searchParams.set("location", `${lat},${lng}`);
     url.searchParams.set("radius", String(radiusMeters));
     url.searchParams.set("key", apiKey);
 
-    // Add a fetch timeout to avoid hanging requests
+   
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
     let res: Response;

@@ -2,11 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import type { Car } from "@/types"
 import { getToyotaInventory } from "@/lib/toyota-api"
 
-/**
- * API Route: GET /api/cars/[id]
- *
- * Retrieves detailed information for a specific vehicle by ID from the Toyota inventory.
- */
+
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -57,9 +53,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-/**
- * Calculates eco rating based on fuel type and MPG
- */
+
 function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: number): number {
   const avgMpg = (cityMpg + highwayMpg) / 2
   let baseRating = 5

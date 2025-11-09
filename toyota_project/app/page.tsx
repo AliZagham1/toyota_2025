@@ -123,7 +123,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background Elements */}
+      
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#D32F2F]/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
@@ -219,13 +219,13 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero - Enhanced with Unique Elements */}
+     
       <section 
         ref={heroRef}
         data-section-id="hero"
         className={`relative min-h-screen flex items-center overflow-hidden pt-20 ${getSectionClasses('hero')}`}
       >
-        {/* Unique Geometric Pattern */}
+       
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 right-20 w-64 h-64 border-2 border-[#D32F2F]/10 rounded-full"></div>
           <div className="absolute bottom-20 left-20 w-48 h-48 border-2 border-accent/10 rounded-full"></div>
@@ -234,9 +234,9 @@ export default function LandingPage() {
 
         <div className="relative max-w-7xl mx-auto px-6 py-20 z-10 w-full">
           <div className="grid lg:grid-cols-5 gap-16 items-center">
-            {/* Left Content */}
+           
             <div className="lg:col-span-3 space-y-10 animate-fade-in-up">
-              {/* Badge with Animation */}
+             
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-[#D32F2F]/10 to-[#D32F2F]/5 border border-[#D32F2F]/20 rounded-full backdrop-blur-sm group hover:scale-105 transition-transform duration-300">
                 <div className="w-2 h-2 bg-[#D32F2F] rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-[#D32F2F] uppercase tracking-wider">
@@ -269,7 +269,7 @@ export default function LandingPage() {
                 </Button>
               </div>
 
-              {/* Typing Animation */}
+              
               <div className="pt-10 border-t border-border/50">
                 <div className="flex items-start gap-3">
                   <div className="mt-1">
@@ -285,10 +285,10 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Visual - Enhanced */}
+           
             <div className="lg:col-span-2 relative lg:translate-y-12 animate-fade-in-up" style={{ animationDelay: '0.2s', opacity: 0, animationFillMode: 'forwards' }}>
               <div className="relative group">
-                {/* Main Image Container with Glow Effect */}
+                
                 <div className="relative aspect-3/4 rounded-3xl overflow-hidden bg-linear-to-br from-[#D32F2F]/10 via-muted/50 to-accent/10 border border-border/50 shadow-2xl group-hover:shadow-[#D32F2F]/20 transition-all duration-500">
                   <div className="absolute inset-0 bg-linear-to-br from-[#D32F2F]/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <Image
@@ -301,23 +301,10 @@ export default function LandingPage() {
                   />
                 </div>
 
-                {/* Floating Badge - Enhanced */}
-                <div className="absolute -bottom-6 -left-6 bg-background/95 backdrop-blur-md rounded-2xl shadow-2xl border border-border/50 p-5 animate-fade-in-up hover:scale-105 transition-transform duration-300" style={{ animationDelay: '0.4s', opacity: 0, animationFillMode: 'forwards' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#D32F2F] to-[#B71C1C] flex items-center justify-center shadow-lg">
-                        <Zap className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-pulse"></div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-sm text-foreground">AI Match</div>
-                      <div className="text-xs text-muted-foreground">98% Accurate</div>
-                    </div>
-                  </div>
-                </div>
+                
+                
 
-                {/* Decorative Elements */}
+                
                 <div className="absolute -top-4 -right-4 w-20 h-20 border-2 border-[#D32F2F]/20 rounded-full opacity-50"></div>
                 <div className="absolute top-1/2 -right-8 w-16 h-16 border border-accent/20 rounded-lg rotate-45 opacity-30"></div>
               </div>
@@ -326,14 +313,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Choose Your Starting Point - Fresh New Approach */}
+    
       <section 
         ref={startingPointRef}
         data-section-id="starting-point"
         className={`py-32 px-6 relative ${getSectionClasses('starting-point')}`}
       >
         <div className="max-w-5xl mx-auto">
-          {/* Minimal Header */}
+          
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
               <span className="text-foreground">How Would You</span>
@@ -342,17 +329,17 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          {/* Two Large Interactive Panels */}
+         
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* AI Prompt Option */}
+           
             <div
               onClick={() => router.push("/prompt")}
               className="group relative aspect-4/5 max-h-[500px] rounded-3xl overflow-hidden cursor-pointer"
             >
-              {/* Background Gradient */}
+             
               <div className="absolute inset-0 bg-linear-to-br from-[#D32F2F] via-[#B71C1C] to-[#D32F2F] opacity-90 group-hover:opacity-100 transition-opacity duration-500"></div>
               
-              {/* Pattern Overlay */}
+              
               <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0" style={{
                   backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
@@ -360,7 +347,7 @@ export default function LandingPage() {
                 }}></div>
               </div>
 
-              {/* Content */}
+             
               <div className="relative h-full flex flex-col justify-between p-6 md:p-8 text-white">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
@@ -378,26 +365,26 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Bottom CTA */}
+              
                 <div className="flex items-center gap-3 group-hover:gap-5 transition-all duration-300">
                   <span className="font-semibold">Get Started</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                 </div>
               </div>
 
-              {/* Hover Glow */}
+             
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
 
-            {/* Filter Form Option */}
+         
             <div
               onClick={() => router.push("/form")}
               className="group relative aspect-4/5 max-h-[500px] rounded-3xl overflow-hidden cursor-pointer border-2 border-border hover:border-accent/50 transition-all duration-500"
             >
-              {/* Background */}
+             
               <div className="absolute inset-0 bg-linear-to-br from-background via-muted/30 to-background"></div>
               
-              {/* Pattern Overlay */}
+            
               <div className="absolute inset-0 opacity-5">
                 <div className="absolute inset-0" style={{
                   backgroundImage: `linear-gradient(45deg, transparent 48%, currentColor 49%, currentColor 51%, transparent 52%)`,
@@ -405,7 +392,7 @@ export default function LandingPage() {
                 }}></div>
               </div>
 
-              {/* Content */}
+          
               <div className="relative h-full flex flex-col justify-between p-6 md:p-8">
                 <div className="space-y-4">
                   <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
@@ -423,19 +410,19 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                {/* Bottom CTA */}
+               
                 <div className="flex items-center gap-3 text-accent font-semibold group-hover:gap-5 transition-all duration-300">
                   <span>Browse Filters</span>
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                 </div>
               </div>
 
-              {/* Hover Accent */}
+             
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-accent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </div>
           </div>
 
-          {/* Subtle Bottom Text */}
+          
           <div className="text-center mt-12">
             <p className="text-sm text-muted-foreground">
               Choose the method that works best for you
@@ -444,13 +431,12 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Process - Enhanced Timeline */}
       <section 
         ref={processRef}
         data-section-id="process"
         className={`py-32 px-6 bg-muted/20 relative overflow-hidden ${getSectionClasses('process')}`}
       >
-        {/* Background Pattern */}
+       
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-linear-to-b from-transparent via-[#D32F2F] to-transparent"></div>
         </div>
@@ -469,9 +455,9 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          {/* Enhanced Timeline */}
+        
           <div className="relative">
-            {/* Animated Connecting Line */}
+           
             <div className="hidden md:block absolute top-12 left-0 right-0 h-1">
               <div className="h-full bg-linear-to-r from-[#D32F2F] via-accent to-[#D32F2F] relative overflow-hidden">
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
@@ -485,7 +471,7 @@ export default function LandingPage() {
                 { num: "03", title: "Compare & Decide", desc: "Review detailed specs, compare options, and make your choice with confidence." }
               ].map((step, index) => (
                 <div key={index} className="relative flex flex-col md:flex-row md:items-center gap-8 group animate-fade-in-up" style={{ animationDelay: `${0.15 * index}s`, opacity: 0, animationFillMode: 'forwards' }}>
-                  {/* Enhanced Number Badge */}
+                
                   <div className="shrink-0 relative">
                     <div className="absolute inset-0 bg-linear-to-br from-[#D32F2F] to-[#B71C1C] rounded-full blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                     <div className="relative w-24 h-24 rounded-full bg-linear-to-br from-[#D32F2F] to-[#B71C1C] flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300">
@@ -493,7 +479,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                   
-                  {/* Content */}
+              
                   <div className="flex-1 group-hover:translate-x-2 transition-transform duration-300">
                     <h3 className="text-2xl font-semibold text-foreground mb-3 group-hover:text-[#D32F2F] transition-colors">{step.title}</h3>
                     <p className="text-base text-muted-foreground leading-relaxed">{step.desc}</p>
@@ -505,7 +491,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Key Features - Enhanced */}
+   
       <section 
         ref={featuresRef}
         data-section-id="features"
@@ -513,7 +499,7 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-20 items-center">
-            {/* Left - Content */}
+           
             <div className="space-y-8">
               <div>
                 <div className="inline-flex items-center gap-2 mb-4">
@@ -532,7 +518,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Right - Enhanced Feature List */}
+           
             <div className="space-y-4">
               {[
                 { icon: Sparkles, text: "AI-powered natural language search" },
@@ -561,13 +547,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Final CTA - Enhanced */}
+    
       <section 
         ref={ctaRef}
         data-section-id="cta"
         className={`py-32 px-6 relative overflow-hidden ${getSectionClasses('cta')}`}
       >
-        {/* Background Effects */}
+     
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-linear-to-r from-[#D32F2F]/10 via-accent/10 to-[#D32F2F]/10 rounded-full blur-3xl"></div>
         </div>
@@ -604,7 +590,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Enhanced Footer */}
       <footer className="py-12 px-6 border-t border-border/50 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">

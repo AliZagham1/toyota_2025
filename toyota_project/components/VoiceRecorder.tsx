@@ -5,21 +5,7 @@ import { Mic, MicOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WaveAnimation } from "./WaveAnimation"
 
-/**
- * VoiceRecorder Component
- *
- * Provides voice input functionality using the Web Speech API.
- * Features:
- * - Microphone button to start/stop recording
- * - Live wave animation while listening
- * - Automatic transcript capture
- * - Error handling for browser compatibility
- *
- * Props:
- * - onTranscript: (text: string) => void - Callback when speech is recognized
- * - onError: (error: string) => void - Callback for error handling
- * - disabled: boolean - Whether the recorder is disabled
- */
+
 
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void
@@ -35,10 +21,7 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
   // Reference to the speech recognition instance
   const recognitionRef = useRef<any>(null)
 
-  /**
-   * Initialize Web Speech API on component mount
-   * Check browser compatibility
-   */
+ 
   useEffect(() => {
     // Check if browser supports Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -58,10 +41,7 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
     recognition.lang = "en-US" // Language setting
     recognition.maxAlternatives = 1 // Number of alternative transcripts
 
-    /**
-     * Event handler for successful speech recognition
-     * Extracts transcript and passes it to parent component
-     */
+    
     recognition.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript
       console.log("[VoiceRecorder] Transcript:", transcript)
@@ -71,14 +51,9 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
       setIsListening(false)
     }
 
-    /**
-     * Event handler for recognition errors
-     * Handles various error scenarios with proper distinction between
-     * user-initiated aborts and actual errors
-     */
+    
     recognition.onerror = (event: any) => {
-      // "aborted" is not a real error - it's a normal event when user stops recording
-      // or component unmounts. Log as warning, not error.
+     
       if (event.error === "aborted") {
         console.warn("[VoiceRecorder] Recording aborted (normal behavior)")
         setIsListening(false)
@@ -111,10 +86,7 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
       setIsListening(false)
     }
 
-    /**
-     * Event handler for recognition end
-     * Ensures UI state is updated when recognition stops
-     */
+   
     recognition.onend = () => {
       setIsListening(false)
     }
@@ -130,10 +102,7 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
     }
   }, [onTranscript, onError])
 
-  /**
-   * Toggle recording state
-   * Start or stop speech recognition
-   */
+  
   const toggleRecording = () => {
     if (!isSupported || !recognitionRef.current) return
 
@@ -160,10 +129,10 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Wave Animation - shown while listening */}
+    
       <WaveAnimation isActive={isListening} />
 
-      {/* Microphone Button with enhanced visual feedback */}
+    
       <Button
         type="button"
         onClick={toggleRecording}
@@ -180,7 +149,7 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
         {isListening ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
       </Button>
 
-      {/* Status text */}
+     
       {isListening && (
         <p className="text-sm text-red-600 font-medium animate-pulse">Listening... Speak now</p>
       )}

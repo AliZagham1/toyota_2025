@@ -37,7 +37,7 @@ export default function ComparisonPage() {
                 className="border border-border overflow-hidden hover:shadow-xl transition-all duration-300 hover-lift animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.1}s`, opacity: 0, animationFillMode: 'forwards' }}
               >
-                {/* Image */}
+               
                 <div className="h-40 bg-muted overflow-hidden group">
                   <img 
                     src={car.imageUrl || "/placeholder.svg"} 
@@ -46,7 +46,7 @@ export default function ComparisonPage() {
                   />
                 </div>
 
-                {/* Content */}
+               
                 <div className="p-4 space-y-4">
                   <div>
                     <h3 className="text-lg font-bold text-foreground">{car.name}</h3>
@@ -85,7 +85,7 @@ export default function ComparisonPage() {
           </div>
         </div>
 
-        {/* Comparison Table */}
+      
         <Card className="border border-border p-6 mb-8 shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
             <div className="w-1 h-8 bg-[#D32F2F] rounded-full"></div>
@@ -149,7 +149,7 @@ export default function ComparisonPage() {
           </div>
         </Card>
 
-        {/* Actions */}
+       
         <div className="flex gap-4 justify-center">
           <Button 
             variant="outline" 

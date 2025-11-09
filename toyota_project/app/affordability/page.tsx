@@ -15,45 +15,44 @@ export default function AffordabilityPage() {
   const carId = searchParams.get("carId")
   const carPrice = Number.parseFloat(searchParams.get("price") || "30000")
 
-  const [downPayment, setDownPayment] = useState(carPrice * 0.1) // More realistic default: 10%
+  const [downPayment, setDownPayment] = useState(carPrice * 0.1) 
   const [creditScore, setCreditScore] = useState(750)
   const [loanType, setLoanType] = useState<"finance" | "lease">("finance")
-  const [loanTerm, setLoanTerm] = useState(60) // Default to 60 months for finance
+  const [loanTerm, setLoanTerm] = useState(60) 
 
   const [monthlyPayment, setMonthlyPayment] = useState(0)
   const [totalPayment, setTotalPayment] = useState(0)
   const [interestRate, setInterestRate] = useState(0)
-  const [residualValue, setResidualValue] = useState(0) // For lease calculations
-  const [totalInterest, setTotalInterest] = useState(0) // Total interest paid
+  const [residualValue, setResidualValue] = useState(0)
+  const [totalInterest, setTotalInterest] = useState(0) 
 
-  // Update loan term when switching between finance and lease
+  
   useEffect(() => {
     if (loanType === "lease" && loanTerm !== 36) {
-      setLoanTerm(36) // Leases are typically 36 months
+      setLoanTerm(36) 
     } else if (loanType === "finance" && loanTerm === 36) {
-      setLoanTerm(60) // Default finance to 60 months
+      setLoanTerm(60) 
     }
   }, [loanType])
 
-  // Calculate affordability when inputs change
+  
   useEffect(() => {
     calculatePayment()
   }, [downPayment, creditScore, loanType, loanTerm, carPrice])
 
   const getInterestRate = (score: number, term: number, isLease: boolean): number => {
-    // Realistic 2024-2025 auto loan rates based on credit score and term length
-    // Longer terms typically have slightly higher rates
+    
     let baseRate = 0
     
     if (isLease) {
-      // Lease money factors are typically higher (converted to APR for display)
+      
       if (score >= 750) baseRate = 5.5
       else if (score >= 700) baseRate = 6.5
       else if (score >= 650) baseRate = 8.0
       else if (score >= 600) baseRate = 10.5
       else baseRate = 13.5
     } else {
-      // Finance rates (2024-2025 market rates)
+      
       if (score >= 750) {
         baseRate = term <= 48 ? 5.0 : term <= 60 ? 5.5 : 6.0
       } else if (score >= 700) {
@@ -76,7 +75,7 @@ export default function AffordabilityPage() {
     setInterestRate(rate)
 
     if (loanType === "finance") {
-      // Standard auto loan formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
+     
       const monthlyRate = rate / 100 / 12
       const payment =
         (principal * (monthlyRate * Math.pow(1 + monthlyRate, loanTerm))) / (Math.pow(1 + monthlyRate, loanTerm) - 1)
@@ -90,10 +89,8 @@ export default function AffordabilityPage() {
       setTotalInterest(Math.round(interest))
       setResidualValue(0) // No residual for finance
     } else {
-      // Realistic lease calculation
-      // Residual value: typically 50-60% of MSRP for 36-month leases on new vehicles
-      // Higher for reliable brands like Toyota (55-60%)
-      const residualPercentage = 0.57 // 57% residual for Toyota (realistic for 36-month lease)
+     
+      const residualPercentage = 0.57 
       const residual = carPrice * residualPercentage
       setResidualValue(residual)
       
@@ -103,7 +100,7 @@ export default function AffordabilityPage() {
       // Depreciation (amount you pay over the lease term)
       const depreciation = capCost - residual
       
-      // Rent charge (interest) - calculated using money factor equivalent
+    
       const monthlyRate = rate / 100 / 12
       const rentCharge = (capCost + residual) * monthlyRate
       
@@ -111,7 +108,7 @@ export default function AffordabilityPage() {
       const monthly = (depreciation / loanTerm) + rentCharge
       
       // Total lease cost = monthly payments + down payment + acquisition fee (typically $500-700)
-      const acquisitionFee = 650 // Typical Toyota lease acquisition fee
+      const acquisitionFee = 650 
       const total = monthly * loanTerm + downPayment + acquisitionFee
       const interest = total - (carPrice - residual) - downPayment - acquisitionFee
       
@@ -140,7 +137,7 @@ export default function AffordabilityPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-12 animate-fade-in">
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Calculator Inputs */}
+        
           <div className="space-y-6">
             <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
               <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">

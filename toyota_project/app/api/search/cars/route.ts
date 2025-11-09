@@ -12,15 +12,15 @@ export async function POST(request: NextRequest) {
     // Prepare base filters for Toyota API (server-side filtering) - exclude model here
     const toyotaBaseFilters = {
       priceRange: filters.priceRange,
-      priceRanges: filters.priceRanges, // Multiple price ranges
-      year: filters.year, // Pass year directly as single value (will be converted to string)
-      yearRange: filters.year ? undefined : undefined, // Only use if year not provided
+      priceRanges: filters.priceRanges, 
+      year: filters.year, 
+      yearRange: filters.year ? undefined : undefined, 
       trim: filters.trim,
       fuelType: filters.fuelType,
       bodyStyle: filters.bodyStyle,
       color: filters.color,
-      mileage: filters.mileage, // Mileage filter for odometer
-      condition: (filters.condition || "both") as "new" | "used" | "both", // Default to both new and used
+      mileage: filters.mileage, 
+      condition: (filters.condition || "both") as "new" | "used" | "both", 
       interiorColor: filters.interiorColor,
       transmission: filters.transmission,
       options: filters.options,
@@ -35,14 +35,14 @@ export async function POST(request: NextRequest) {
       dealerships: (filters.dealerships as any) || undefined,
     }
 
-    // Decide models to query: prefer models[] if present, else single model, else no model filter
+
     const modelsToQuery =
       (filters.models && filters.models.length > 0 && filters.models.slice(0, 5)) ||
       (filters.model ? [filters.model] : [null])
 
     console.log("[Cars Search] Models to query:", modelsToQuery)
 
-    // Fetch inventories in parallel for each model
+   
     const fetches = modelsToQuery.map((mdl) =>
       getToyotaInventory({
         ...toyotaBaseFilters,
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     let filtered = vehicleLists.flat()
     console.log("[Cars Search] Retrieved", filtered.length, "vehicles from Toyota API (combined)")
     
-    // Fallback: if we only got one unique model and a bodyStyle is specified (e.g., sedan),
+    
     // do an extra fetch without model to broaden results by body style.
     const uniqueModels = new Set(filtered.map((v) => v.model))
     if (uniqueModels.size <= 1 && (filters.bodyStyle || "").length > 0) {
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         })(),
         dealerKey: (vehicle as any).dealer as string | undefined,
       }))
-      .filter((car) => car.price > 0) // Filter out cars with $0 price
+      .filter((car) => car.price > 0) 
 
     // Score cars based on how well they match the filters, sort by score desc
     const scored = scoreAndSortCars(cars, filters)
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      cars: diversified, // Mixed set of models
+      cars: diversified, 
       totalResults: cars.length,
     })
   } catch (error) {
@@ -126,9 +126,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Calculates eco rating based on fuel type and MPG
- */
+
 function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: number): number {
   const avgMpg = (cityMpg + highwayMpg) / 2
 
@@ -147,12 +145,7 @@ function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: numbe
   return Math.min(Math.max(baseRating, 1), 10)
 }
 
-/**
- * Diversify a list of cars by interleaving different models.
- * - Groups cars by model (case-insensitive)
- * - Preserves incoming order within each group (so pre-sorted lists keep priority)
- * - Round-robins across groups up to limit, capping per model
- */
+
 function diversifyByModel(
   cars: Car[],
   opts: { maxPerModel: number; limit: number } = { maxPerModel: 5, limit: 50 },
@@ -164,8 +157,7 @@ function diversifyByModel(
     if (!buckets.has(key)) buckets.set(key, [])
     buckets.get(key)!.push(car)
   }
-  // Do not sort buckets: preserve original ranking within each model
-  // Track how many taken per model
+ 
   const taken = new Map<string, number>()
   const keys = Array.from(buckets.keys())
   const result: Car[] = []
@@ -184,7 +176,7 @@ function diversifyByModel(
       added = true
     }
   }
-  // If still under limit (e.g., very few models), fill with remaining cheapest
+ 
   if (result.length < limit) {
     const remaining = Array.from(buckets.values()).flat()
     // Preserve original order for remaining as well
@@ -196,9 +188,7 @@ function diversifyByModel(
   return result
 }
 
-/**
- * Compute a relevance score for a car given user filters and return cars sorted by score desc.
- */
+
 function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
   const hasPriceRanges = Array.isArray(filters.priceRanges) && filters.priceRanges.length > 0
   const models = (filters.models || (filters.model ? [filters.model] : []) || []).map((m) => (m || "").toLowerCase())
@@ -207,7 +197,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
   const scored = cars.map((car) => {
     let score = 0
 
-    // Model preference
+ 
     if (models.length > 0) {
       const cm = (car.model || "").toLowerCase()
       if (cm === preferFirstModel) score += 6
@@ -230,7 +220,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
     // Year match
     if (typeof filters.year === "number") {
       if (car.year === filters.year) score += 2
-      // Slightly reward being within +/-1 year if exact not available
+     
       if (Math.abs(car.year - filters.year) === 1) score += 1
     }
 
@@ -239,7 +229,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
       const delta = (car.mpg || 0) - filters.overallMpg
       if (delta >= 0) score += Math.min(4, 1 + Math.floor(delta / 5)) // reward exceeding target
     } else {
-      // If "sporty and efficient" often implies decent mpg, value higher mpg a bit
+  
       if (car.mpg >= 35) score += 2
       else if (car.mpg >= 30) score += 1
     }
@@ -250,11 +240,11 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
         car.mileage >= Math.max(0, filters.mileage.min) && car.mileage <= Math.max(filters.mileage.max, 0)
       if (within) {
         score += 2
-        // Prefer lower mileage within the range
+      
         if (car.mileage <= filters.mileage.min + (filters.mileage.max - filters.mileage.min) * 0.25) score += 1
       }
     } else {
-      // If no mileage specified, prefer new or lower mileage slightly
+     
       if (car.isNew) score += 1
       else if (car.mileage <= 30000) score += 1
     }
@@ -267,10 +257,10 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
         const min = Math.max(0, r.min)
         const max = Math.max(min, r.max)
         if (price >= min && price <= max) {
-          // Reward being inside range, closer to lower end usually more "affordable"
+         
           const span = Math.max(1, max - min)
-          const rel = (max - price) / span // closer to lower → higher rel
-          best = Math.max(best, 3 + Math.floor(rel * 3)) // up to +6
+          const rel = (max - price) / span 
+          best = Math.max(best, 3 + Math.floor(rel * 3)) 
         } else {
           // Penalize distance outside the range lightly
           const d = price < min ? min - price : price - max

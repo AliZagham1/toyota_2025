@@ -79,7 +79,7 @@ export default function ResultsPage() {
         break
       case "best":
       default:
-        // Keep API order (already ranked)
+        
         break
     }
     return list
@@ -128,7 +128,7 @@ export default function ResultsPage() {
           </div>
         ) : (
           <>
-            {/* Sorting */}
+         
             <div className="mb-6 p-4 bg-card border border-border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300">
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium text-foreground">Sort by:</span>
@@ -151,7 +151,7 @@ export default function ResultsPage() {
               </div>
             </div>
 
-            {/* Comparison Bar */}
+           
             {comparedCars.length > 0 && (
               <div className="mb-8 p-4 bg-linear-to-r from-[#D32F2F]/10 to-accent/10 border-2 border-[#D32F2F]/30 rounded-xl flex items-center justify-between shadow-sm animate-scale-in">
                 <span className="text-sm font-medium text-foreground flex items-center gap-2">
@@ -168,7 +168,7 @@ export default function ResultsPage() {
               </div>
             )}
 
-            {/* Car Grid */}
+            
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {displayedCars.map((car, index) => (
                 <Card
@@ -177,7 +177,7 @@ export default function ResultsPage() {
                   className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border border-border hover-lift animate-fade-in-up"
                   style={{ animationDelay: `${index * 0.1}s`, opacity: 0, animationFillMode: 'forwards' }}
                 >
-                  {/* Image */}
+                  
                   <div className="relative overflow-hidden bg-muted h-48 group-hover:opacity-90 transition-all duration-300">
                     <img
                       src={car.imageUrl || "/placeholder.svg"}
@@ -259,7 +259,7 @@ export default function ResultsPage() {
         )}
       </main>
 
-      {/* Unified Chat Widget */}
+      
       {cars.length > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
         {cars.length > 0 && <ToyoAssistant cars={cars} originalQuery={originalDesc} />}

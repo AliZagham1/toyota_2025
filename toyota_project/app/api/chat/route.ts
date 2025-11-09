@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
     }
 
-    // Limit cars context to 12 to keep prompt compact
+    // Limit the context
     const carsContext: Car[] = Array.isArray(cars) ? cars.slice(0, 12) : []
     const userConversation = Array.isArray(messages) ? messages : []
     const userTurns = userConversation.filter((m: any) => m?.role === "user").length
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(geminiApiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
-    // Build chat content: system context + prior messages
+    
     const prompt = `${systemInstructions}\n\nConversation:\n${formatConversation(userConversation)}\n\nAssistant:`
 
     if (shouldStream) {
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Non-streaming fallback
+    
     const result = await model.generateContent(prompt)
     const response = await result.response
     const text = response.text()

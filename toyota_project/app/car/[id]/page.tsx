@@ -84,13 +84,13 @@ const [dealerError, setDealerError] = useState<string | null>(null);
     setFindingDealers(true);
   
     try {
-      // --- ADD THIS CHECK ---
+      // check
       if (!car) {
         throw new Error("Car details are not available.");
       }
       // --------------------
 
-      // Get browser location
+     
       if (!navigator.geolocation) {
         throw new Error("Geolocation is not supported by your browser");
       }
@@ -128,9 +128,9 @@ const [dealerError, setDealerError] = useState<string | null>(null);
       const res = await fetch("/api/dealers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // --- UPDATE THIS LINE ---
+      
         body: JSON.stringify({ lat, lng, make: car.make }),
-        // ------------------------
+      
       });
   
       const data = await res.json();
@@ -152,9 +152,9 @@ const [dealerError, setDealerError] = useState<string | null>(null);
       <Header title={car.name} subtitle={`${car.year} ${car.make} ${car.model}`} />
 
       <main className="max-w-4xl mx-auto px-6 py-12 space-y-8 animate-fade-in">
-        {/* Image and Key Info */}
+       
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Image */}
+       
           <div className="bg-muted rounded-xl overflow-hidden h-96 shadow-lg hover:shadow-xl transition-shadow duration-300 group">
             <img 
               src={car.imageUrl || "/placeholder.svg"} 
@@ -163,7 +163,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
             />
           </div>
 
-          {/* Key Information */}
+        
           <div className="space-y-6">
             <div className="p-6 bg-card rounded-xl border border-border shadow-sm">
               <p className="text-sm text-muted-foreground mb-2">Price</p>
@@ -207,7 +207,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
           </div>
         </div>
 
-        {/* Detailed Specs */}
+       
         <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
           <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
             <div className="w-1 h-8 bg-[#D32F2F] rounded-full"></div>
@@ -239,7 +239,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
           </div>
         </Card>
 
-        {/* Action Buttons */}
+       
         <div className="grid md:grid-cols-2 gap-4 border-t border-border pt-8">
           <Button
             onClick={() => router.push(`/affordability?carId=${car.id}&price=${car.price}`)}
@@ -263,7 +263,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
           </Button>
         </div>
       </main>
-      {/* Dealer Search Results */}
+     
 {dealerError && (
   <p className="text-sm text-red-500 mt-4">Error: {dealerError}</p>
 )}
@@ -303,7 +303,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
             )}
           </div>
 
-          {/* Quick link to Google Maps */}
+         
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
               d.name + " " + d.address

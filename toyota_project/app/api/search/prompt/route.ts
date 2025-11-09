@@ -4,15 +4,6 @@ import type { CarFilters, Car } from "@/types"
 import { getToyotaInventory } from "@/lib/toyota-api"
 import { getDealerByKey } from "@/lib/dealers"
 
-/**
- * API Route: POST /api/search/prompt
- *
- * Accepts a natural language description and uses Gemini API to generate
- * car search filters, then fetches matching vehicles from Toyota API.
- *
- * Environment variables needed:
- * - GEMINI_API_KEY: Your Google Gemini API key
- */
 
 export async function POST(request: NextRequest) {
   console.log("[API Route] ===== REQUEST RECEIVED =====")
@@ -101,14 +92,14 @@ export async function POST(request: NextRequest) {
 
     const toyotaBaseFilters = {
       priceRange: filters.priceRange,
-      priceRanges: filters.priceRanges, // Multiple price ranges
-      year: filters.year, // Pass year directly as single value (will be converted to string)
-      yearRange: filters.year ? undefined : undefined, // Only use if year not provided
+      priceRanges: filters.priceRanges, 
+      year: filters.year, 
+      yearRange: filters.year ? undefined : undefined, 
       trim: filters.trim,
       fuelType: filters.fuelType,
       bodyStyle: filters.bodyStyle,
       color: filters.color,
-      mileage: filters.mileage, // Mileage filter for odometer
+      mileage: filters.mileage, 
       condition: condition as "new" | "used" | "both",
       interiorColor: filters.interiorColor,
       transmission: filters.transmission,
@@ -154,8 +145,8 @@ export async function POST(request: NextRequest) {
       (filters.models && filters.models.length > 0 && filters.models.slice(0, 5)) ||
       (filters.model ? [filters.model] : [null])
 
-    // If the user did not specify a model and asked for a sedan (often generic sporty/efficient),
-    // expand to several sedan models to diversify results.
+    
+    // expanding to several sedan models to diversify results.
     if (
       !userMentionedSpecificModel &&
       (((filters.bodyStyle || "").toLowerCase() === "sedan") || lowerDesc.includes("sedan")) &&
@@ -167,7 +158,7 @@ export async function POST(request: NextRequest) {
 
     console.log("[API Route] ✓ Models to query:", modelsToQuery)
 
-    // Step 8: Fetch cars from Toyota API
+    //  Fetch cars from Toyota API
     console.log("[API Route] Step 8: Fetching cars from Toyota API...")
     console.log("[API Route] Number of models to query:", modelsToQuery.length)
 
@@ -181,7 +172,7 @@ export async function POST(request: NextRequest) {
     const combined = results.flat()
     console.log("[API Route] ✓ Retrieved", combined.length, "vehicles from Toyota API (combined)")
 
-    // Step 9: Transform to Car format
+    // Transform to Car format
     console.log("[API Route] Step 9: Transforming vehicles to Car format...")
     const cars: Car[] = combined
       .map((vehicle) => ({
@@ -211,22 +202,22 @@ export async function POST(request: NextRequest) {
         })(),
         dealerKey: (vehicle as any).dealer as string | undefined,
       }))
-      .filter((car) => car.price > 0) // Filter out cars with $0 price
+      .filter((car) => car.price > 0) 
 
     console.log("[API Route] ✓ Transformed", cars.length, "vehicles")
 
-    // Step 10: Score and diversify results
+    //  Score and diversify results
     console.log("[API Route] Step 10: Scoring and diversifying results...")
     const scored = scoreAndSortCars(cars, filters)
     const diversified = diversifyByModel(scored, { maxPerModel: 3, limit: 10 })
     console.log("[API Route] ✓ Final results:", diversified.length, "vehicles")
 
-    // Step 11: Return success response
+    //  Return success response
     console.log("[API Route] Step 11: Returning success response...")
     const successResponse = {
       success: true,
       filters: filters,
-      cars: diversified, // Top diversified 10
+      cars: diversified, 
       totalResults: cars.length,
       message: `Found ${cars.length} vehicles matching your description`,
     }
@@ -260,9 +251,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Creates a prompt for Gemini to extract car search filters from natural language
- */
+
 function createExtractionPrompt(description: string): string {
   return `You are a Toyota car search assistant. Analyze the following user description and extract car search filter criteria. Your job is to recommend specific Toyota models that match the user's needs, even if they don't explicitly mention model names.
 
@@ -475,22 +464,20 @@ User description: "${description}"
 Return ONLY the JSON object, no additional text or markdown formatting.`
 }
 
-/**
- * Parses Gemini's response to extract JSON filters
- */
+
 function parseGeminiResponse(response: string): CarFilters {
   try {
-    // Remove markdown code blocks if present
+   
     let jsonText = response.trim()
     jsonText = jsonText.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim()
 
-    // Parse JSON
+   
     const parsed = JSON.parse(jsonText)
 
-    // Validate and normalize the filters
+    
     const filters: CarFilters = {}
 
-    // Handle dealership selection
+   
     if (parsed.dealership && typeof parsed.dealership === "string") {
       const d = parsed.dealership.toString().toLowerCase()
       if (d === "dallas" || d === "plano") {
@@ -508,19 +495,19 @@ function parseGeminiResponse(response: string): CarFilters {
       }
     }
 
-    // Handle priceRanges array (multiple ranges) - preferred format
+    
     if (parsed.priceRanges && Array.isArray(parsed.priceRanges) && parsed.priceRanges.length > 0) {
       filters.priceRanges = parsed.priceRanges
         .filter((range: any) => range.min !== undefined && range.max !== undefined)
         .map((range: any) => ({
-          min: Math.max(Math.round(Number(range.min) / 1000) * 1000, 0), // Round to nearest 1000
-          max: Math.min(Math.round(Number(range.max) / 1000) * 1000, 200000), // Round to nearest 1000
+          min: Math.max(Math.round(Number(range.min) / 1000) * 1000, 0), 
+          max: Math.min(Math.round(Number(range.max) / 1000) * 1000, 200000), 
         }))
-        .filter((range: any) => range.min < range.max) // Remove invalid ranges
+        .filter((range: any) => range.min < range.max) 
       
       console.log("[Parse] Extracted priceRanges:", filters.priceRanges)
     }
-    // Fallback to single priceRange
+   
     else if (parsed.priceRange && parsed.priceRange.min !== undefined && parsed.priceRange.max !== undefined) {
       filters.priceRange = {
         min: Math.max(Math.round(Number(parsed.priceRange.min) / 1000) * 1000, 0),
@@ -553,7 +540,7 @@ function parseGeminiResponse(response: string): CarFilters {
       filters.fuelType = parsed.fuelType
     }
 
-  // Handle models - prefer models array, fallback to single model
+  
     if (parsed.models && Array.isArray(parsed.models) && parsed.models.length > 0) {
       const cleaned = parsed.models
         .filter((m: any) => typeof m === "string")
@@ -675,14 +662,12 @@ function parseGeminiResponse(response: string): CarFilters {
   } catch (error) {
     console.error("[Prompt Search] Failed to parse Gemini response:", error)
     console.error("[Prompt Search] Raw response:", response)
-    // Return empty filters as fallback
+
     return {}
   }
 }
 
-/**
- * Calculates eco rating based on fuel type and MPG
- */
+
 function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: number): number {
   const avgMpg = (cityMpg + highwayMpg) / 2
 
@@ -701,9 +686,7 @@ function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: numbe
   return Math.min(Math.max(baseRating, 1), 10)
 }
 
-/**
- * Compute a relevance score for a car given user filters and return cars sorted by score desc.
- */
+
 function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
   const hasPriceRanges = Array.isArray(filters.priceRanges) && filters.priceRanges.length > 0
   const models = (filters.models || (filters.model ? [filters.model] : []) || []).map((m) => (m || "").toLowerCase())
@@ -744,7 +727,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
       const delta = (car.mpg || 0) - filters.overallMpg
       if (delta >= 0) score += Math.min(4, 1 + Math.floor(delta / 5)) // reward exceeding target
     } else {
-      // If "sporty and efficient" often implies decent mpg, value higher mpg a bit
+     
       if (car.mpg >= 35) score += 2
       else if (car.mpg >= 30) score += 1
     }
@@ -774,8 +757,8 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
         if (price >= min && price <= max) {
           // Reward being inside range, closer to lower end usually more "affordable"
           const span = Math.max(1, max - min)
-          const rel = (max - price) / span // closer to lower → higher rel
-          best = Math.max(best, 3 + Math.floor(rel * 3)) // up to +6
+          const rel = (max - price) / span 
+          best = Math.max(best, 3 + Math.floor(rel * 3)) 
         } else {
           // Penalize distance outside the range lightly
           const d = price < min ? min - price : price - max
@@ -789,7 +772,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
       if (price >= min && price <= max) {
         const span = Math.max(1, max - min)
         const rel = (max - price) / span
-        score += 5 + Math.floor(rel * 3) // up to +8
+        score += 5 + Math.floor(rel * 3) 
       } else {
         const d = price < min ? min - price : price - max
         score += Math.max(0, 2 - Math.floor(d / 5000))
@@ -803,12 +786,7 @@ function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
   return scored.map((s) => s.car)
 }
 
-/**
- * Diversify a list of cars by interleaving different models.
- * - Groups cars by model (case-insensitive)
- * - Preserves incoming order within each group (so pre-sorted lists keep priority)
- * - Round-robins across groups up to limit, capping per model
- */
+
 function diversifyByModel(
   cars: Car[],
   opts: { maxPerModel: number; limit: number } = { maxPerModel: 5, limit: 50 },
@@ -820,8 +798,7 @@ function diversifyByModel(
     if (!buckets.has(key)) buckets.set(key, [])
     buckets.get(key)!.push(car)
   }
-  // Do not sort buckets: preserve original ranking within each model
-  // Track how many taken per model
+  
   const taken = new Map<string, number>()
   const keys = Array.from(buckets.keys())
   const result: Car[] = []
@@ -840,7 +817,7 @@ function diversifyByModel(
       added = true
     }
   }
-  // If still under limit (e.g., very few models), fill with remaining cheapest
+ 
   if (result.length < limit) {
     const remaining = Array.from(buckets.values()).flat()
     // Preserve original order for remaining as well
