@@ -95,14 +95,34 @@ const [dealerError, setDealerError] = useState<string | null>(null);
         throw new Error("Geolocation is not supported by your browser");
       }
 
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
+      // Try browser geolocation first with reasonable options
+      let lat: number | null = null
+      let lng: number | null = null
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false, // faster / less power, better chance to resolve indoors
+            timeout: 20000, // extend timeout to reduce spurious timeouts
+            maximumAge: 60000, // allow a cached position up to 1 min old
+          });
         });
-      });
-  
-      const { latitude: lat, longitude: lng } = pos.coords;
+        lat = pos.coords.latitude
+        lng = pos.coords.longitude
+      } catch (geoErr) {
+        // Fallback: approximate by dealership city if available, else Dallas center
+        const dealerName = car.dealer || ""
+        if (dealerName.includes("Dallas")) {
+          lat = 32.7767; lng = -96.7970
+        } else if (dealerName.includes("Plano")) {
+          lat = 33.0198; lng = -96.6989
+        } else {
+          // DFW metro fallback
+          lat = 32.8998; lng = -97.0403
+        }
+      }
+      if (lat == null || lng == null) {
+        throw new Error("Location unavailable")
+      }
   
       // Call our API
       const res = await fetch("/api/dealers", {

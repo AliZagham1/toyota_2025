@@ -33,7 +33,20 @@ export async function POST(req: Request) {
     url.searchParams.set("radius", String(radiusMeters));
     url.searchParams.set("key", apiKey);
 
-    const res = await fetch(url.toString(), { cache: "no-store" });
+    // Add a fetch timeout to avoid hanging requests
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    let res: Response;
+    try {
+      res = await fetch(url.toString(), { cache: "no-store", signal: controller.signal });
+    } catch (e: any) {
+      if (e?.name === "AbortError") {
+        return NextResponse.json({ error: "Timeout expired" }, { status: 504 });
+      }
+      throw e;
+    } finally {
+      clearTimeout(timeout);
+    }
     if (!res.ok) {
       const text = await res.text();
       return NextResponse.json({ error: "Google Places error", details: text }, { status: 502 });
