@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Fuel, DollarSign, Calendar, MessageSquare } from "lucide-react"
 import type { Car } from "@/types"
 import { useStore } from "@/lib/store"
+import { ToyoVoiceChat } from "@/components/ToyoVoiceChat"
 
 export default function ResultsPage() {
   const router = useRouter()
@@ -325,17 +326,24 @@ export default function ResultsPage() {
         )}
       </main>
 
-      {/* Chat Widget */}
-      <div className="fixed bottom-6 right-6 z-50">
-        {!chatOpen ? (
-          <Button
-            onClick={() => setChatOpen(true)}
-            className="rounded-full shadow-lg bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
-          >
-            <MessageSquare className="w-4 h-4" />
-            Chat with Toyo
-          </Button>
-        ) : (
+      {/* Chat Widgets */}
+      <div className="fixed bottom-6 right-6 z-50 flex items-end gap-3">
+        {/* Voice Chat */}
+        {cars.length > 0 && (
+          <ToyoVoiceChat cars={cars} originalQuery={originalDesc} />
+        )}
+        
+        {/* Text Chat */}
+        <div>
+          {!chatOpen ? (
+            <Button
+              onClick={() => setChatOpen(true)}
+              className="rounded-full shadow-lg bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Chat with Toyo
+            </Button>
+          ) : (
           <div className="w-[380px] h-[560px] bg-background border border-border rounded-xl shadow-xl flex flex-col overflow-hidden">
             <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-muted/40">
               <div className="flex items-center gap-3">
@@ -394,7 +402,8 @@ export default function ResultsPage() {
               <div className="text-[10px] text-muted-foreground mt-1">Press Enter to send</div>
             </div>
           </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )
