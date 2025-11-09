@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import type { CarFilters, Car } from "@/types"
 import { getToyotaInventory } from "@/lib/toyota-api"
+import { getDealerByKey } from "@/lib/dealers"
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,12 +97,12 @@ export async function POST(request: NextRequest) {
         },
         ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
         isNew: vehicle.isNew,
-        dealer:
-          (vehicle as any).dealer === "plano"
-            ? "Toyota of Plano"
-            : (vehicle as any).dealer === "dallas"
-              ? "Toyota of Dallas"
-              : undefined,
+        dealer: (() => {
+          const key = (vehicle as any).dealer as string | undefined
+          const dealer = getDealerByKey(key)
+          return dealer?.displayName
+        })(),
+        dealerKey: (vehicle as any).dealer as string | undefined,
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 

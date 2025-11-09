@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import type { CarFilters, Car } from "@/types"
 import { getToyotaInventory } from "@/lib/toyota-api"
+import { getDealerByKey } from "@/lib/dealers"
 
 /**
  * API Route: POST /api/search/prompt
@@ -87,6 +88,9 @@ export async function POST(request: NextRequest) {
       } else if (descLower.includes("plano")) {
         ;(filters as any).dealership = "plano"
         console.log("[Prompt Search] Heuristic set dealership to plano based on description")
+      } else if (descLower.includes("richardson")) {
+        ;(filters as any).dealership = "richardson"
+        console.log("[Prompt Search] Heuristic set dealership to richardson based on description")
       }
     }
 
@@ -200,12 +204,12 @@ export async function POST(request: NextRequest) {
         },
         ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
         isNew: vehicle.isNew,
-        dealer:
-          (vehicle as any).dealer === "plano"
-            ? "Toyota of Plano"
-            : (vehicle as any).dealer === "dallas"
-              ? "Toyota of Dallas"
-              : undefined,
+        dealer: (() => {
+          const key = (vehicle as any).dealer as string | undefined
+          const dealer = getDealerByKey(key)
+          return dealer?.displayName
+        })(),
+        dealerKey: (vehicle as any).dealer as string | undefined,
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 
@@ -298,8 +302,9 @@ DEALERSHIP SELECTION:
 - Map dealership/location mentions to:
   * "Dallas" or "at dallas" → "dallas"
   * "Plano" or "at plano" → "plano"
+  * "Richardson" or "at richardson" → "richardson"
 - If user explicitly names a dealership/city, set "dealership" to that value and do NOT set the other.
-- If user asks for both or doesn't specify, leave "dealership" null (or use "dealerships": ["plano","dallas"] when both are desired).
+- If user asks for both or doesn't specify, leave "dealership" null (or use "dealerships": ["plano","dallas","richardson"] when multiple are desired).
 
 Toyota Model Guide:
 - SEDANS:
@@ -332,6 +337,7 @@ Toyota Model Guide:
 
 Examples:
 - "camrys at dallas" → model: "Camry", dealership: "dallas"
+- "camry at richardson" → model: "Camry", dealership: "richardson"
 - "sporty sedan that's fun to drive but fuel efficient" → bodyStyle: "sedan", models: ["Camry", "Corolla", "Prius", "Crown"], condition: null (show both)
 - "I want a brand new 2025 Camry" → model: "Camry", year: 2025, condition: "new"
 - "Looking for a used RAV4 under $30,000" → model: "RAV4", priceRange: {min: 0, max: 30000}, condition: "used"

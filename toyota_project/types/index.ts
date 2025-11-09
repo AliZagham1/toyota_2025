@@ -3,8 +3,8 @@ export interface CarFilters {
   model?: string
   models?: string[]
   trim?: string
-  dealership?: "plano" | "dallas"
-  dealerships?: Array<"plano" | "dallas">
+  dealership?: string
+  dealerships?: string[]
   priceRange?: {
     min: number
     max: number
@@ -54,6 +54,7 @@ export interface Car {
   ecoRating?: number
   isNew: boolean
   dealer?: string
+  dealerKey?: string
 }
 
 export interface AffordabilityInput {

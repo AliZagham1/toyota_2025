@@ -20,40 +20,10 @@ export interface ToyotaVehicle {
   stockNumber?: string
   isNew: boolean
   seats?: number
-  dealer?: string
+  dealer?: string // dealer key
 }
 
-type DealerKey = "plano" | "dallas"
-type DealerConfig = {
-  key: DealerKey
-  siteId: string
-  domain: string // e.g., https://www.toyotaofplano.com
-  pageIdNew: string
-  pageIdUsed: string
-  refererNew: string
-  refererUsed: string
-}
-
-const DEALERS: Record<DealerKey, DealerConfig> = {
-  plano: {
-    key: "plano",
-    siteId: "toyotaofplanogst",
-    domain: "https://www.toyotaofplano.com",
-    pageIdNew: "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1",
-    pageIdUsed: "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1",
-    refererNew: "https://www.toyotaofplano.com/new-inventory/index.htm",
-    refererUsed: "https://www.toyotaofplano.com/used-inventory/index.htm",
-  },
-  dallas: {
-    key: "dallas",
-    siteId: "toyotadallasvtg",
-    domain: "https://www.toyotaofdallas.com",
-    pageIdNew: "toyotadallasvtg_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1",
-    pageIdUsed: "toyotadallasvtg_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1",
-    refererNew: "https://www.toyotaofdallas.com/new-inventory/index.htm",
-    refererUsed: "https://www.toyotaofdallas.com/used-inventory/index.htm",
-  },
-}
+import { getDealersMap, DealerConfig } from "./dealers"
 /**
  * Helper function to build payload for a specific condition (new or used)
  */
@@ -106,7 +76,7 @@ function buildToyotaPayload(
       violateUsedCompliance: "false",
       showOffSiteInventoryBanner: isNew ? "true" : "false",
       showPhotosViewer: "true",
-      offsetSharedVehicleImageByOne: dealer.key === "dallas" ? "true" : "false",
+      offsetSharedVehicleImageByOne: dealer.flags?.offsetSharedVehicleImageByOne ? "true" : "false",
       certifiedLogoColor: "",
       certifiedDefaultPath: "",
       certifiedDefaultLogoOnly: "false",
@@ -193,8 +163,8 @@ export async function getToyotaInventory(filters?: {
   engine?: string
   driveLine?: string
   vehicleStatus?: "In Stock" | "In Transit" | "Build Phase"
-  dealership?: DealerKey
-  dealerships?: DealerKey[]
+  dealership?: string
+  dealerships?: string[]
 }): Promise<ToyotaVehicle[]> {
   try {
     // Build inventoryParameters from filters - map directly to Toyota API format
@@ -336,24 +306,28 @@ export async function getToyotaInventory(filters?: {
     console.log("[Toyota API] Fetching conditions:", conditionsToFetch)
 
     // Determine dealers to fetch
-    let dealersToFetch: DealerKey[] = []
+    let dealersToFetch: string[] = []
     if (filters?.dealerships && filters.dealerships.length > 0) {
-      dealersToFetch = filters.dealerships.filter((d): d is DealerKey => d === "plano" || d === "dallas")
+      dealersToFetch = filters.dealerships
     } else if (filters?.dealership) {
-      if (filters.dealership === "plano" || filters.dealership === "dallas") {
-        dealersToFetch = [filters.dealership]
-      }
+      dealersToFetch = [filters.dealership]
     }
-    // Default to both if none specified
+    // Default to all registered dealers if none specified
     if (dealersToFetch.length === 0) {
-      dealersToFetch = ["plano", "dallas"]
+      const map = getDealersMap()
+      dealersToFetch = Object.keys(map)
     }
     console.log("[Toyota API] Dealers to fetch:", dealersToFetch.join(", "))
 
     // Fetch from all specified dealers and conditions in parallel
+    const dealerMap = getDealersMap()
     const fetchPromises = dealersToFetch.flatMap((dealerKey) =>
       conditionsToFetch.map(async (condition) => {
-        const dealer = DEALERS[dealerKey]
+        const dealer = dealerMap[dealerKey]
+        if (!dealer) {
+          console.warn("[Toyota API] Unknown dealer key, skipping:", dealerKey)
+          return []
+        }
         const payload = buildToyotaPayload(inventoryParameters, condition, dealer)
         const referer = condition === "new" ? dealer.refererNew : dealer.refererUsed
 
@@ -405,10 +379,7 @@ export async function getToyotaInventory(filters?: {
 
     // Enforce dealership filter as a safety net (in case of future changes)
     if (filters?.dealership || (filters?.dealerships && filters.dealerships.length > 0)) {
-      const allowed = new Set<string>(
-        (filters.dealerships as string[]) ||
-          (filters.dealership ? [filters.dealership as string] : []),
-      )
+      const allowed = new Set<string>((filters.dealerships as string[]) || (filters.dealership ? [filters.dealership as string] : []))
       const before = allVehicles.length
       allVehicles = allVehicles.filter((v: ToyotaVehicle & { dealer?: string }) =>
         v.dealer ? allowed.has(v.dealer) : true,
@@ -496,7 +467,7 @@ export async function getToyotaInventory(filters?: {
 /**
  * Transforms Toyota API response into our vehicle format
  */
-function transformToyotaResponse(data: any, baseDomain: string, dealerKey: DealerKey): ToyotaVehicle[] {
+function transformToyotaResponse(data: any, baseDomain: string, dealerKey: string): ToyotaVehicle[] {
   // Log the data structure to understand what we're receiving
   console.log("[Transform] Data structure check:")
   console.log("  - data exists:", !!data)
@@ -619,35 +590,57 @@ function transformToyotaResponse(data: any, baseDomain: string, dealerKey: Deale
                       getTrackingAttribute(trackingAttributes, "normalFuelType") ||
                       result.fuelType || "gasoline"
 
+      // Helper function to parse price strings (handles "$29,120" format)
+      const parsePrice = (price: any): number => {
+        if (typeof price === 'number') return price
+        if (!price) return 0
+        const str = String(price).replace(/[$,]/g, '')
+        const num = Number(str)
+        return isNaN(num) ? 0 : num
+      }
+
       // Extract pricing - prefer trackingPricing, fallback to pricing object
-      // Convert string prices to numbers
-      const internetPrice = Number(trackingPricing.internetPrice) || 
-                           Number(pricing.internetPrice) || 
-                           Number(result.internetPrice) || 
+      // Convert string prices to numbers (handles "$29,120" format)
+      const internetPrice = parsePrice(trackingPricing.internetPrice) || 
+                           parsePrice(pricing.internetPrice) || 
+                           parsePrice(result.internetPrice) || 
                            0
       
       // Asking price (MSRP) - fallback to internetPrice if not available
-      const askingPrice = Number(trackingPricing.msrp) || 
-                         Number(pricing.msrp) || 
-                         Number(pricing.askingPrice) ||
-                         Number(result.askingPrice) || 
+      const askingPrice = parsePrice(trackingPricing.msrp) || 
+                         parsePrice(pricing.msrp) || 
+                         parsePrice(pricing.askingPrice) ||
+                         parsePrice(result.askingPrice) || 
                          internetPrice || 
                          0
 
-      // Extract mileage/odometer - check attributes array first (has name="odometer" with value="X miles")
+      // Extract mileage/odometer - check trackingAttributes first, then attributes array, then direct fields
       let mileage = 0
       
-      // Try to get odometer from attributes array
-      const odometerValue = getAttribute(attributes, "odometer")
-      if (odometerValue) {
-        // Parse string like "3 miles" or "15000 miles" to extract number
-        const mileageMatch = odometerValue.toString().match(/(\d+(?:,\d+)?)/)
+      // Try to get odometer from trackingAttributes (e.g., "odometer": "2" or "136")
+      const trackingOdometer = getTrackingAttribute(trackingAttributes, "odometer")
+      if (trackingOdometer) {
+        // Parse string like "2" or "136" or "15000" to extract number
+        const mileageMatch = trackingOdometer.toString().match(/(\d+(?:,\d+)?)/)
         if (mileageMatch) {
           mileage = Number(mileageMatch[1].replace(/,/g, ""))
         }
       }
       
-      // Fallback to direct fields if not found in attributes
+      // Try to get odometer from attributes array if not found in trackingAttributes
+      let odometerValue: string | undefined
+      if (mileage === 0) {
+        odometerValue = getAttribute(attributes, "odometer")
+        if (odometerValue) {
+          // Parse string like "3 miles" or "15000 miles" to extract number
+          const mileageMatch = odometerValue.toString().match(/(\d+(?:,\d+)?)/)
+          if (mileageMatch) {
+            mileage = Number(mileageMatch[1].replace(/,/g, ""))
+          }
+        }
+      }
+      
+      // Fallback to direct fields if not found in attributes or trackingAttributes
       if (mileage === 0) {
         mileage = Number(result.odometer) || 
                  Number(result.mileage) || 
@@ -656,6 +649,7 @@ function transformToyotaResponse(data: any, baseDomain: string, dealerKey: Deale
       
       // Log mileage extraction for first item
       if (index === 0) {
+        console.log("[Transform] Odometer from trackingAttributes:", trackingOdometer)
         console.log("[Transform] Odometer from attributes:", odometerValue)
         console.log("[Transform] Extracted mileage:", mileage)
       }

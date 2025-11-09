@@ -33,18 +33,8 @@ export default function ResultsPage() {
   ])
   const [originalInHistory, setOriginalInHistory] = useState(false)
 
-  // Local filters and sorting
+  // Sorting
   const [sortBy, setSortBy] = useState<"best" | "priceAsc" | "priceDesc" | "mileageAsc" | "yearDesc" | "mpgDesc">("best")
-  const [filterFuel, setFilterFuel] = useState<{ gasoline: boolean; hybrid: boolean; electric: boolean }>({
-    gasoline: false,
-    hybrid: false,
-    electric: false,
-  })
-  const [filterCondition, setFilterCondition] = useState<"all" | "new" | "used">("all")
-  const [filterDealers, setFilterDealers] = useState<{ dallas: boolean; plano: boolean }>({ dallas: false, plano: false })
-  const [maxPrice, setMaxPrice] = useState<number | "">("")
-  const [maxMileage, setMaxMileage] = useState<number | "">("")
-  const [minYear, setMinYear] = useState<number | "">("")
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -79,42 +69,9 @@ export default function ResultsPage() {
     fetchResults()
   }, [searchParams])
 
-  // (Removed personalized override; keep the original static greeting)
-
-  // Derived filtered + sorted list
+  // Derived sorted list
   const displayedCars = (() => {
     let list = [...cars]
-    // Filters
-    // Fuel
-    const activeFuels = Object.entries(filterFuel)
-      .filter(([, v]) => v)
-      .map(([k]) => k)
-    if (activeFuels.length > 0) {
-      list = list.filter((c) => activeFuels.includes((c.fuelType || "").toLowerCase()))
-    }
-    // Condition
-    if (filterCondition !== "all") {
-      list = list.filter((c) => (filterCondition === "new" ? c.isNew : !c.isNew))
-    }
-    // Dealership
-    const activeDealers: string[] = Object.entries(filterDealers)
-      .filter(([, v]) => v)
-      .map(([k]) => (k === "dallas" ? "Toyota of Dallas" : "Toyota of Plano"))
-    if (activeDealers.length > 0) {
-      list = list.filter((c) => (c.dealer ? activeDealers.includes(c.dealer) : false))
-    }
-    // Max price
-    if (maxPrice !== "") {
-      list = list.filter((c) => (c.price || 0) <= Number(maxPrice))
-    }
-    // Max mileage
-    if (maxMileage !== "") {
-      list = list.filter((c) => (c.mileage || 0) <= Number(maxMileage))
-    }
-    // Min year
-    if (minYear !== "") {
-      list = list.filter((c) => (c.year || 0) >= Number(minYear))
-    }
     // Sorting
     switch (sortBy) {
       case "priceAsc":
@@ -248,145 +205,26 @@ export default function ResultsPage() {
           </div>
         ) : (
           <>
-            {/* Compact Filters & Sorting */}
+            {/* Sorting */}
             <div className="mb-6 p-3 bg-muted/30 border border-border rounded-lg">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Sort</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) =>
-                      setSortBy(
-                        e.target.value as "best" | "priceAsc" | "priceDesc" | "mileageAsc" | "yearDesc" | "mpgDesc",
-                      )
-                    }
-                    className="px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-                  >
-                    <option value="best">Best</option>
-                    <option value="priceAsc">Price ↑</option>
-                    <option value="priceDesc">Price ↓</option>
-                    <option value="mileageAsc">Mileage ↑</option>
-                    <option value="yearDesc">Year ↓</option>
-                    <option value="mpgDesc">MPG ↓</option>
-                  </select>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Fuel quick toggles */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-xs text-muted-foreground">Fuel</span>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={filterFuel.gasoline}
-                        onChange={(e) => setFilterFuel((f) => ({ ...f, gasoline: e.target.checked }))}
-                      />
-                      Gas
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={filterFuel.hybrid}
-                        onChange={(e) => setFilterFuel((f) => ({ ...f, hybrid: e.target.checked }))}
-                      />
-                      Hybrid
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={filterFuel.electric}
-                        onChange={(e) => setFilterFuel((f) => ({ ...f, electric: e.target.checked }))}
-                      />
-                      EV
-                    </label>
-                  </div>
-
-                  {/* Condition */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Cond.</span>
-                    <select
-                      value={filterCondition}
-                      onChange={(e) => setFilterCondition(e.target.value as "all" | "new" | "used")}
-                      className="px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-                    >
-                      <option value="all">All</option>
-                      <option value="new">New</option>
-                      <option value="used">Used</option>
-                    </select>
-                  </div>
-
-                  {/* Dealer */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-xs text-muted-foreground">Dealer</span>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={filterDealers.dallas}
-                        onChange={(e) => setFilterDealers((d) => ({ ...d, dallas: e.target.checked }))}
-                      />
-                      Dallas
-                    </label>
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        checked={filterDealers.plano}
-                        onChange={(e) => setFilterDealers((d) => ({ ...d, plano: e.target.checked }))}
-                      />
-                      Plano
-                    </label>
-                  </div>
-
-                  {/* Quick numeric filters */}
-                  <div className="flex items-center gap-2">
-                    <input
-                      inputMode="numeric"
-                      value={maxPrice}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        setMaxPrice(v === "" ? "" : Number(v.replace(/\D/g, "")))
-                      }}
-                      placeholder="Max $"
-                      className="w-24 px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-                    />
-                    <input
-                      inputMode="numeric"
-                      value={maxMileage}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        setMaxMileage(v === "" ? "" : Number(v.replace(/\D/g, "")))
-                      }}
-                      placeholder="Max mi"
-                      className="w-24 px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-                    />
-                    <input
-                      inputMode="numeric"
-                      value={minYear}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        setMinYear(v === "" ? "" : Number(v.replace(/\D/g, "")))
-                      }}
-                      placeholder="Min yr"
-                      className="w-20 px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
-                    />
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSortBy("best")
-                      setFilterFuel({ gasoline: false, hybrid: false, electric: false })
-                      setFilterCondition("all")
-                      setFilterDealers({ dallas: false, plano: false })
-                      setMaxPrice("")
-                      setMaxMileage("")
-                      setMinYear("")
-                    }}
-                    className="border-border text-xs"
-                  >
-                    Reset
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Sort</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) =>
+                    setSortBy(
+                      e.target.value as "best" | "priceAsc" | "priceDesc" | "mileageAsc" | "yearDesc" | "mpgDesc",
+                    )
+                  }
+                  className="px-2 py-1 rounded-md border border-border bg-background text-foreground text-sm"
+                >
+                  <option value="best">Best</option>
+                  <option value="priceAsc">Price ↑</option>
+                  <option value="priceDesc">Price ↓</option>
+                  <option value="mileageAsc">Mileage ↑</option>
+                  <option value="yearDesc">Year ↓</option>
+                  <option value="mpgDesc">MPG ↓</option>
+                </select>
               </div>
             </div>
 
