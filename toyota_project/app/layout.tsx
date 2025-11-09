@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Toyota Vehicle Finder",
+  title: "ToyoMatch - Find Your Perfect Toyota",
   description: "Find your ideal Toyota vehicle with our AI-powered search tool",
   generator: "v0.app",
   icons: {

@@ -25,17 +25,25 @@ export default function ComparisonPage() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Header title="Compare Vehicles" subtitle={`Comparing ${comparedCars.length} vehicles`} />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-12 animate-fade-in">
         <div className="overflow-x-auto mb-8">
           <div className="grid gap-4 pb-4" style={{ gridTemplateColumns: `repeat(${comparedCars.length}, 300px)` }}>
-            {comparedCars.map((car) => (
-              <Card key={car.id} className="border border-border overflow-hidden hover:shadow-lg transition-shadow">
+            {comparedCars.map((car, index) => (
+              <Card 
+                key={car.id} 
+                className="border border-border overflow-hidden hover:shadow-xl transition-all duration-300 hover-lift animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.1}s`, opacity: 0, animationFillMode: 'forwards' }}
+              >
                 {/* Image */}
-                <div className="h-40 bg-muted overflow-hidden">
-                  <img src={car.imageUrl || "/placeholder.svg"} alt={car.name} className="w-full h-full object-cover" />
+                <div className="h-40 bg-muted overflow-hidden group">
+                  <img 
+                    src={car.imageUrl || "/placeholder.svg"} 
+                    alt={car.name} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                  />
                 </div>
 
                 {/* Content */}
@@ -67,7 +75,7 @@ export default function ComparisonPage() {
                   <Button
                     onClick={() => router.push(`/car/${car.id}`)}
                     size="sm"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    className="w-full bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
                   >
                     View Details
                   </Button>
@@ -78,8 +86,11 @@ export default function ComparisonPage() {
         </div>
 
         {/* Comparison Table */}
-        <Card className="border border-border p-6 mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Detailed Comparison</h2>
+        <Card className="border border-border p-6 mb-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+            <div className="w-1 h-8 bg-[#D32F2F] rounded-full"></div>
+            Detailed Comparison
+          </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -93,15 +104,15 @@ export default function ComparisonPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-border hover:bg-muted/50">
+                <tr className="border-b border-border hover:bg-muted/50 transition-colors duration-200">
                   <td className="py-3 pr-4 font-medium text-foreground">Price</td>
                   {comparedCars.map((car) => (
-                    <td key={car.id} className="py-3 px-4 text-center text-primary font-semibold">
+                    <td key={car.id} className="py-3 px-4 text-center text-[#D32F2F] font-semibold">
                       ${car.price.toLocaleString()}
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b border-border hover:bg-muted/50">
+                <tr className="border-b border-border hover:bg-muted/50 transition-colors duration-200">
                   <td className="py-3 pr-4 font-medium text-foreground">Year</td>
                   {comparedCars.map((car) => (
                     <td key={car.id} className="py-3 px-4 text-center text-foreground">
@@ -109,7 +120,7 @@ export default function ComparisonPage() {
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b border-border hover:bg-muted/50">
+                <tr className="border-b border-border hover:bg-muted/50 transition-colors duration-200">
                   <td className="py-3 pr-4 font-medium text-foreground">Fuel Type</td>
                   {comparedCars.map((car) => (
                     <td key={car.id} className="py-3 px-4 text-center text-foreground capitalize">
@@ -117,7 +128,7 @@ export default function ComparisonPage() {
                     </td>
                   ))}
                 </tr>
-                <tr className="border-b border-border hover:bg-muted/50">
+                <tr className="border-b border-border hover:bg-muted/50 transition-colors duration-200">
                   <td className="py-3 pr-4 font-medium text-foreground">Transmission</td>
                   {comparedCars.map((car) => (
                     <td key={car.id} className="py-3 px-4 text-center text-foreground">
@@ -140,12 +151,16 @@ export default function ComparisonPage() {
 
         {/* Actions */}
         <div className="flex gap-4 justify-center">
-          <Button variant="outline" onClick={clearComparison} className="border-border bg-transparent">
+          <Button 
+            variant="outline" 
+            onClick={clearComparison} 
+            className="border-border hover:border-[#D32F2F] hover:bg-[#D32F2F]/10 transition-all duration-300"
+          >
             Clear Comparison
           </Button>
           <Button
             onClick={() => router.push("/results")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
           >
             Back to Results
           </Button>

@@ -135,23 +135,29 @@ export default function AffordabilityPage() {
   const termStep = loanType === "lease" ? 12 : 12
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Header title="Check Affordability" subtitle="Calculate your estimated monthly payment" />
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
+      <main className="max-w-4xl mx-auto px-6 py-12 animate-fade-in">
         <div className="grid md:grid-cols-2 gap-8">
           {/* Calculator Inputs */}
           <div className="space-y-6">
-            <Card className="p-6 border border-border">
-              <h2 className="text-xl font-bold text-foreground mb-6">Vehicle Price</h2>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
+                Vehicle Price
+              </h2>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">Total Price</p>
-                <p className="text-4xl font-bold text-primary mb-4">${carPrice.toLocaleString()}</p>
+                <p className="text-4xl font-bold text-[#D32F2F] mb-4 animate-fade-in-up">${carPrice.toLocaleString()}</p>
               </div>
             </Card>
 
-            <Card className="p-6 border border-border space-y-4">
-              <h2 className="text-xl font-bold text-foreground mb-4">Down Payment</h2>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300 space-y-4">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
+                Down Payment
+              </h2>
               <div>
                 <p className="text-sm text-muted-foreground mb-2">
                   Amount: ${downPayment.toLocaleString(undefined, { maximumFractionDigits: 0 })}
@@ -175,8 +181,11 @@ export default function AffordabilityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border border-border space-y-4">
-              <h2 className="text-xl font-bold text-foreground mb-4">Credit Score</h2>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300 space-y-4">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
+                Credit Score
+              </h2>
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Score: {creditScore}</p>
                 <Slider
@@ -193,8 +202,11 @@ export default function AffordabilityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border border-border space-y-4">
-              <h2 className="text-xl font-bold text-foreground mb-4">Loan Type</h2>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300 space-y-4">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
+                Loan Type
+              </h2>
               <div className="space-y-2">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -221,8 +233,9 @@ export default function AffordabilityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border border-border space-y-4">
-              <h2 className="text-xl font-bold text-foreground mb-4">
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300 space-y-4">
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
                 {loanType === "lease" ? "Lease Term" : "Loan Term"}
               </h2>
               <div>
@@ -248,10 +261,10 @@ export default function AffordabilityPage() {
 
           {/* Results */}
           <div className="space-y-6">
-            <Card className="p-8 border border-primary bg-primary/5">
+            <Card className="p-8 border-2 border-[#D32F2F] bg-gradient-to-br from-[#D32F2F]/10 to-[#D32F2F]/5 shadow-lg animate-scale-in">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground mb-2">Estimated Monthly Payment</p>
-                <p className="text-5xl font-bold text-primary mb-2">${monthlyPayment.toLocaleString()}</p>
+                <p className="text-5xl font-bold text-[#D32F2F] mb-2 animate-fade-in-up">${monthlyPayment.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">
                   {loanType === "finance" ? "Finance" : "Lease"} for {loanTerm} months
                 </p>
@@ -263,13 +276,16 @@ export default function AffordabilityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border border-border space-y-4">
-              <h3 className="text-lg font-bold text-foreground mb-4">Payment Summary</h3>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300 space-y-4">
+              <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
+                <div className="w-1 h-5 bg-[#D32F2F] rounded-full"></div>
+                Payment Summary
+              </h3>
 
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors duration-200">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-primary" />
+                    <DollarSign className="w-5 h-5 text-[#D32F2F]" />
                     <span className="text-sm text-muted-foreground">Down Payment</span>
                   </div>
                   <span className="font-bold text-foreground">
@@ -277,17 +293,17 @@ export default function AffordabilityPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors duration-200">
                   <div className="flex items-center gap-2">
-                    <TrendingDown className="w-5 h-5 text-primary" />
+                    <TrendingDown className="w-5 h-5 text-[#D32F2F]" />
                     <span className="text-sm text-muted-foreground">Monthly Payment</span>
                   </div>
                   <span className="font-bold text-foreground">${monthlyPayment.toLocaleString()}</span>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors duration-200">
                   <div className="flex items-center gap-2">
-                    <Percent className="w-5 h-5 text-primary" />
+                    <Percent className="w-5 h-5 text-[#D32F2F]" />
                     <span className="text-sm text-muted-foreground">
                       {loanType === "lease" ? "Money Factor (APR)" : "Interest Rate (APR)"}
                     </span>
@@ -296,9 +312,9 @@ export default function AffordabilityPage() {
                 </div>
 
                 {loanType === "lease" && residualValue > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Calculator className="w-5 h-5 text-primary" />
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors duration-200">
+                  <div className="flex items-center gap-2">
+                    <Calculator className="w-5 h-5 text-[#D32F2F]" />
                       <span className="text-sm text-muted-foreground">Residual Value</span>
                     </div>
                     <span className="font-bold text-foreground">
@@ -329,8 +345,11 @@ export default function AffordabilityPage() {
               </div>
             </Card>
 
-            <Card className="p-6 border border-border">
-              <h3 className="font-bold text-foreground mb-3">Credit Score Impact</h3>
+            <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+              <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                <div className="w-1 h-5 bg-[#D32F2F] rounded-full"></div>
+                Credit Score Impact
+              </h3>
               <p className="text-sm text-muted-foreground mb-4">
                 Your credit score significantly affects the interest rate offered by lenders. Rates shown are estimates based on current market conditions (2024-2025). Actual rates may vary.
               </p>
@@ -348,12 +367,16 @@ export default function AffordabilityPage() {
 
             {/* Buttons */}
             <div className="flex gap-4 pt-4">
-              <Button variant="outline" onClick={() => router.back()} className="flex-1 border-border">
+              <Button 
+                variant="outline" 
+                onClick={() => router.back()} 
+                className="flex-1 border-border hover:border-[#D32F2F] hover:bg-[#D32F2F]/10 transition-all duration-300"
+              >
                 Back
               </Button>
               <Button
                 onClick={() => router.push("/results")}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="flex-1 bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
               >
                 Find More Vehicles
               </Button>

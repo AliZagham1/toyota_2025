@@ -14,12 +14,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 })
     }
 
-    // Limit cars context to 12 to keep prompt compact
-    const carsContext: Car[] = Array.isArray(cars) ? cars.slice(0, 12) : []
-    const userConversation = Array.isArray(messages) ? messages : []
-    const userTurns = userConversation.filter((m: any) => m?.role === "user").length
+  // Limit cars context to 12 to keep prompt compact
+  const carsContext: Car[] = Array.isArray(cars) ? cars.slice(0, 12) : []
+  const userConversation = Array.isArray(messages) ? messages : []
+  const userTurns = userConversation.filter((m: any) => m?.role === "user").length
 
-    const systemInstructions = buildSystemContext(originalQuery || "", carsContext, userTurns)
+  // Check if user is asking about price (cheapest, most expensive, etc.)
+  const lastUserMessage = userConversation
+    .filter((m: any) => m?.role === "user")
+    .pop()?.content?.toLowerCase() || ""
+  const isPriceQuery = lastUserMessage.includes("cheapest") || 
+                       lastUserMessage.includes("most expensive") || 
+                       lastUserMessage.includes("lowest price") ||
+                       lastUserMessage.includes("highest price") ||
+                       lastUserMessage.includes("affordable") ||
+                       lastUserMessage.includes("budget")
+
+  const systemInstructions = buildSystemContext(originalQuery || "", carsContext, userTurns, isPriceQuery)
 
     const genAI = new GoogleGenerativeAI(geminiApiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
@@ -66,15 +77,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSystemContext(originalQuery: string, cars: Car[], userTurns: number): string {
-  const header = `You are Toyo, a friendly, upbeat Toyota dealership assistant embedded in a results page.
+function buildSystemContext(originalQuery: string, cars: Car[], userTurns: number, isPriceQuery: boolean = false): string {
+  const header = `You are Toyo, a friendly, decisive Toyota dealership assistant embedded in a results page.
 Tone: warm, encouraging, and concise. Avoid jargon. Use short sentences.
-Goal: help the user choose confidently. Celebrate good fits. Offer kind guidance.
+Goal: help the user choose confidently by providing clear recommendations and answers.
 Context: You only know the vehicles shown in this results page. If asked beyond this list, say you only know what's displayed and suggest adjusting filters.
 Style:
 - ALWAYS answer in one short paragraph (2–5 simple sentences). No bullet points unless explicitly requested.
-- Act as a decisive expert. Do not explain definitions or teach concepts unless asked; focus on recommendations.
-- Ask a gentle clarifying question when it helps them decide.
+- Act as a decisive expert. Do not explain definitions or teach concepts unless asked; focus on recommendations and direct answers.
+- ANSWER questions directly. Provide recommendations based on available information.
 - Never make up specs not present; use what's in the list (year, model, price, mileage, fuel type, MPG, trim hints).
 - Keep it positive and helpful.`
 
@@ -82,7 +93,12 @@ Style:
     ? `User original description: "${originalQuery}"`
     : "User original description: (not provided)"
 
-  const carsLines = cars
+  // Sort cars by price if it's a price-related query
+  const sortedCars = isPriceQuery 
+    ? [...cars].sort((a, b) => (a.price || 0) - (b.price || 0))
+    : cars
+
+  const carsLines = sortedCars
     .map((c, i) => {
       const price = (c.price || 0).toLocaleString()
       const miles = c.mileage > 0 ? `${c.mileage.toLocaleString()} miles` : "New"
@@ -96,22 +112,32 @@ Style:
     })
     .join("\n")
 
-  const guidance = `Answer policy:
-- Prioritize the user's needs (budget fit, fuel type, MPG, mileage, condition).
-- Default to recommending the single best option right now; only ask a question if a critical detail is missing.
-- Provide concise comparisons and recommendations in a single short paragraph.
-- Highlight key differences (trim, powertrain, MPG, price/mileage) briefly.
-- If the user seems undecided, ask a kind clarifying question (budget, mpg priority, features).
+  const priceQueryInstructions = isPriceQuery
+    ? `\n\nCRITICAL: The user is asking about price (cheapest/most expensive/affordable).
+- The vehicles above are sorted by price (lowest to highest).
+- The FIRST vehicle listed (#1) is the CHEAPEST option.
+- The LAST vehicle listed is the MOST EXPENSIVE option.
+- When asked "what's the cheapest", identify the FIRST vehicle in the list above.
+- When asked "what's the most expensive", identify the LAST vehicle in the list above.
+- ALWAYS check the actual price numbers to confirm - do not guess or assume.
+- State the exact price and vehicle details from the list above.`
+    : ""
+
+  const guidance = `CRITICAL ANSWER POLICY:
+- ALWAYS provide a direct answer or recommendation. Do NOT ask questions unless absolutely necessary.
+- When the user asks a question, ANSWER IT directly using the vehicle information provided.
+- When comparing vehicles, provide a clear recommendation based on the user's stated needs.
+- Only ask ONE clarifying question if you genuinely cannot answer without a critical piece of information (and this should be rare).
+- Prioritize giving answers over asking questions. Be decisive and helpful.
+- If the user asks "which is better" or "what should I choose", recommend the best option from the list with a brief reason.
 - Only discuss the vehicles listed above; suggest changing filters to see more.`
 
-  const acknowledgement = `Before asking a question, briefly acknowledge what the user already told you and what you understand from their description, then ask one short clarifying question to build on it. Keep it natural and friendly.`
-
   const finalization =
-    userTurns >= 2
-      ? `Finalization rule: You have enough information. Now provide your final recommendation in one short paragraph. Start with "Best match:" and name the single best vehicle (or two only if it's a clear tie) from the list, with a brief reason (fit to needs like MPG/price/mileage/trim). Do not ask more questions. Invite the user to view details next.`
-      : `Progress rule: Keep the conversation brief. If you need exactly one more detail to make a strong recommendation, ask one short question. Otherwise, suggest your top pick now.`
+    userTurns >= 1
+      ? `You have information from the user. Provide a direct answer or recommendation now. Be decisive. Only ask a question if you absolutely cannot answer without a critical detail that is completely missing.`
+      : `Provide helpful information and be ready to answer questions directly.`
 
-  return `${header}\n\n${queryLine}\n\nDisplayed vehicles (${cars.length}):\n${carsLines}\n\n${guidance}\n\n${acknowledgement}\n\n${finalization}`
+  return `${header}\n\n${queryLine}\n\nDisplayed vehicles (${sortedCars.length}):\n${carsLines}${priceQueryInstructions}\n\n${guidance}\n\n${finalization}`
 }
 
 function formatConversation(messages: Array<{ role: string; content: string }>): string {

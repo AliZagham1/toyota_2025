@@ -117,14 +117,15 @@ export default function FormPage() {
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Header title="Filter by Specifications" subtitle="Specify your preferences" />
 
       <main className="max-w-4xl mx-auto px-6 py-12">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8 animate-fade-in">
           {/* Basic Information */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Basic Information
             </h2>
 
@@ -135,7 +136,7 @@ export default function FormPage() {
                   placeholder="e.g., Toyota"
                   value={filters.make || ""}
                   onChange={(e) => handleChange("make", e.target.value || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -144,7 +145,7 @@ export default function FormPage() {
                   placeholder="e.g., Camry"
                   value={filters.model || ""}
                   onChange={(e) => handleChange("model", e.target.value || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -153,7 +154,7 @@ export default function FormPage() {
                   placeholder="e.g., XLE"
                   value={filters.trim || ""}
                   onChange={(e) => handleChange("trim", e.target.value || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
             </div>
@@ -166,7 +167,7 @@ export default function FormPage() {
                   placeholder="2024"
                   value={filters.year || ""}
                   onChange={(e) => handleChange("year", Number(e.target.value) || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -174,7 +175,7 @@ export default function FormPage() {
                 <select
                   value={filters.bodyStyle || ""}
                   onChange={(e) => handleChange("bodyStyle", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="Sedan">Sedan</option>
@@ -190,7 +191,7 @@ export default function FormPage() {
                 <select
                   value={filters.condition || "both"}
                   onChange={(e) => handleChange("condition", e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="both">Both</option>
                   <option value="new">New</option>
@@ -201,8 +202,9 @@ export default function FormPage() {
           </div>
 
           {/* Pricing & Mileage */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Pricing & Mileage
             </h2>
 
@@ -217,7 +219,7 @@ export default function FormPage() {
                       placeholder="0"
                       value={filters.priceRange?.min || ""}
                       onChange={(e) => handlePriceRangeChange("min", Number(e.target.value))}
-                      className="bg-background"
+                      className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                     />
                   </div>
                   <div>
@@ -227,7 +229,7 @@ export default function FormPage() {
                       placeholder="100000"
                       value={filters.priceRange?.max || ""}
                       onChange={(e) => handlePriceRangeChange("max", Number(e.target.value))}
-                      className="bg-background"
+                      className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                     />
                   </div>
                 </div>
@@ -242,7 +244,7 @@ export default function FormPage() {
                       placeholder="0"
                       value={filters.mileage?.min || ""}
                       onChange={(e) => handleMileageChange("min", Number(e.target.value))}
-                      className="bg-background"
+                      className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                     />
                   </div>
                   <div>
@@ -252,7 +254,7 @@ export default function FormPage() {
                       placeholder="200000"
                       value={filters.mileage?.max || ""}
                       onChange={(e) => handleMileageChange("max", Number(e.target.value))}
-                      className="bg-background"
+                      className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                     />
                   </div>
                 </div>
@@ -261,8 +263,9 @@ export default function FormPage() {
           </div>
 
           {/* Appearance & Interior */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Appearance & Interior
             </h2>
 
@@ -273,7 +276,7 @@ export default function FormPage() {
                   placeholder="e.g., Black"
                   value={filters.color || ""}
                   onChange={(e) => handleChange("color", e.target.value || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -281,7 +284,7 @@ export default function FormPage() {
                 <select
                   value={filters.interiorColor || ""}
                   onChange={(e) => handleChange("interiorColor", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="Gray">Gray</option>
@@ -298,7 +301,7 @@ export default function FormPage() {
                 <select
                   value={filters.interiorMaterial || ""}
                   onChange={(e) => handleChange("interiorMaterial", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="Leather">Leather</option>
@@ -310,8 +313,9 @@ export default function FormPage() {
           </div>
 
           {/* Performance & Drivetrain */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Performance & Drivetrain
             </h2>
 
@@ -321,7 +325,7 @@ export default function FormPage() {
                 <select
                   value={filters.fuelType || ""}
                   onChange={(e) => handleChange("fuelType", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="gasoline">Gasoline</option>
@@ -334,7 +338,7 @@ export default function FormPage() {
                 <select
                   value={filters.transmission || ""}
                   onChange={(e) => handleChange("transmission", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="Automatic">Automatic</option>
@@ -347,7 +351,7 @@ export default function FormPage() {
                 <select
                   value={filters.engine || ""}
                   onChange={(e) => handleChange("engine", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="4-Cyl. Engine">4-Cyl. Engine</option>
@@ -360,7 +364,7 @@ export default function FormPage() {
                 <select
                   value={filters.driveLine || ""}
                   onChange={(e) => handleChange("driveLine", e.target.value || undefined)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-[#D32F2F] transition-all duration-200 hover:border-[#D32F2F]/50"
                 >
                   <option value="">Any</option>
                   <option value="FWD">FWD</option>
@@ -379,7 +383,7 @@ export default function FormPage() {
                   placeholder="e.g., 30"
                   value={filters.highwayMpg || ""}
                   onChange={(e) => handleChange("highwayMpg", Number(e.target.value) || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -389,7 +393,7 @@ export default function FormPage() {
                   placeholder="e.g., 25"
                   value={filters.cityMpg || ""}
                   onChange={(e) => handleChange("cityMpg", Number(e.target.value) || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
               <div>
@@ -399,15 +403,16 @@ export default function FormPage() {
                   placeholder="e.g., 30"
                   value={filters.overallMpg || ""}
                   onChange={(e) => handleChange("overallMpg", Number(e.target.value) || undefined)}
-                  className="bg-background"
+                  className="bg-background transition-all duration-200 focus:ring-2 focus:ring-[#D32F2F] hover:border-[#D32F2F]/50"
                 />
               </div>
             </div>
           </div>
 
           {/* Vehicle Status */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Availability
             </h2>
 
@@ -429,12 +434,13 @@ export default function FormPage() {
           </div>
 
           {/* Features/Options */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">
+          <div className="space-y-6 p-6 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+            <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+              <div className="w-1 h-6 bg-[#D32F2F] rounded-full"></div>
               Features & Options
             </h2>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-4 border border-border rounded-lg bg-background/50">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto p-4 border border-border rounded-lg bg-background/50 hover:bg-background/70 transition-colors duration-300">
               {VEHICLE_OPTIONS.map((option) => (
                 <div key={option} className="flex items-center space-x-2">
                   <Checkbox
@@ -461,7 +467,7 @@ export default function FormPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+              className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               Search Vehicles

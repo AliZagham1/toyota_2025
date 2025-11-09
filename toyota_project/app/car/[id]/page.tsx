@@ -148,61 +148,71 @@ const [dealerError, setDealerError] = useState<string | null>(null);
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       <Header title={car.name} subtitle={`${car.year} ${car.make} ${car.model}`} />
 
-      <main className="max-w-4xl mx-auto px-6 py-12 space-y-8">
+      <main className="max-w-4xl mx-auto px-6 py-12 space-y-8 animate-fade-in">
         {/* Image and Key Info */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Image */}
-          <div className="bg-muted rounded-lg overflow-hidden h-96">
-            <img src={car.imageUrl || "/placeholder.svg"} alt={car.name} className="w-full h-full object-cover" />
+          <div className="bg-muted rounded-xl overflow-hidden h-96 shadow-lg hover:shadow-xl transition-shadow duration-300 group">
+            <img 
+              src={car.imageUrl || "/placeholder.svg"} 
+              alt={car.name} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
           </div>
 
           {/* Key Information */}
           <div className="space-y-6">
-            <div>
+            <div className="p-6 bg-card rounded-xl border border-border shadow-sm">
               <p className="text-sm text-muted-foreground mb-2">Price</p>
-              <p className="text-4xl font-bold text-primary">${car.price.toLocaleString()}</p>
+              <p className="text-4xl font-bold text-[#D32F2F] animate-fade-in-up">${car.price.toLocaleString()}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Card className="p-4 border border-border">
+              <Card className="p-4 border border-border hover:border-[#D32F2F]/50 hover:shadow-md transition-all duration-300">
                 <p className="text-xs text-muted-foreground mb-2">Fuel Type</p>
                 <div className="flex items-center gap-2">
-                  <Fuel className="w-5 h-5 text-primary" />
+                  <Fuel className="w-5 h-5 text-[#D32F2F]" />
                   <p className="font-semibold text-foreground capitalize">{car.fuelType}</p>
                 </div>
               </Card>
 
-              <Card className="p-4 border border-border">
+              <Card className="p-4 border border-border hover:border-[#D32F2F]/50 hover:shadow-md transition-all duration-300">
                 <p className="text-xs text-muted-foreground mb-2">Mileage</p>
                 <div className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-primary" />
+                  <Zap className="w-5 h-5 text-[#D32F2F]" />
                   <p className="font-semibold text-foreground">
                     {car.mileage > 0 ? `${car.mileage.toLocaleString()} mi` : "New"}
                   </p>
                 </div>
               </Card>
 
-              <Card className="p-4 border border-border">
+              <Card className="p-4 border border-border hover:border-[#D32F2F]/50 hover:shadow-md transition-all duration-300">
                 <p className="text-xs text-muted-foreground mb-2">Color</p>
                 <p className="font-semibold text-foreground">{car.color}</p>
               </Card>
             </div>
 
             {car.ecoRating && (
-              <Card className="p-4 border border-accent bg-accent/5">
-                <p className="text-xs text-muted-foreground mb-2">Eco Rating</p>
-                <p className="text-2xl font-bold text-accent">{car.ecoRating}/10</p>
+              <Card className="p-6 border-2 border-accent bg-gradient-to-br from-accent/10 to-accent/5 shadow-md">
+                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                  <span>🌱</span>
+                  Eco Rating
+                </p>
+                <p className="text-3xl font-bold text-accent">{car.ecoRating}/10</p>
               </Card>
             )}
           </div>
         </div>
 
         {/* Detailed Specs */}
-        <Card className="p-6 border border-border">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Specifications</h2>
+        <Card className="p-6 border border-border shadow-sm hover:shadow-md transition-shadow duration-300">
+          <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+            <div className="w-1 h-8 bg-[#D32F2F] rounded-full"></div>
+            Specifications
+          </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="font-semibold text-foreground mb-4">Drivetrain</h3>
@@ -234,23 +244,23 @@ const [dealerError, setDealerError] = useState<string | null>(null);
           <Button
             onClick={() => router.push(`/affordability?carId=${car.id}&price=${car.price}`)}
             variant="outline"
-            className="border-border"
+            className="border-border hover:border-[#D32F2F] hover:bg-[#D32F2F]/10 transition-all duration-300"
           >
             Check Affordability
           </Button>
           <Button
             onClick={() => router.push("/results")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
           >
             Find More Vehicles
           </Button>
           <Button
-    onClick={handleFindDealers}
-    className="bg-primary hover:bg-primary/90 text-primary-foreground"
-    disabled={findingDealers}
-  >
-    {findingDealers ? "Finding Dealers..." : "Find Nearby Dealers"}
-  </Button>
+            onClick={handleFindDealers}
+            className="bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105"
+            disabled={findingDealers}
+          >
+            {findingDealers ? "Finding Dealers..." : "Find Nearby Dealers"}
+          </Button>
         </div>
       </main>
       {/* Dealer Search Results */}
@@ -259,13 +269,16 @@ const [dealerError, setDealerError] = useState<string | null>(null);
 )}
 
 {dealers.length > 0 && (
-  <Card className="p-6 mt-6 border border-border">
-    <h2 className="text-2xl font-bold text-foreground mb-4">Nearby Toyota Dealers</h2>
+  <Card className="p-6 mt-6 border border-border shadow-sm animate-scale-in">
+    <h2 className="text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+      <div className="w-1 h-8 bg-[#D32F2F] rounded-full"></div>
+      Nearby Toyota Dealers
+    </h2>
     <div className="space-y-3">
       {dealers.map((d) => (
         <div
           key={d.place_id}
-          className="p-4 rounded-lg border border-border flex flex-col md:flex-row md:items-center md:justify-between"
+          className="p-4 rounded-lg border border-border flex flex-col md:flex-row md:items-center md:justify-between hover:border-[#D32F2F]/50 hover:shadow-md transition-all duration-300"
         >
           <div>
             <p className="font-semibold text-foreground flex items-center gap-2">
@@ -297,7 +310,7 @@ const [dealerError, setDealerError] = useState<string | null>(null);
             )}`}
             target="_blank"
             rel="noreferrer"
-            className="mt-3 md:mt-0 inline-flex items-center px-3 py-2 rounded-md border border-border text-sm hover:bg-muted"
+            className="mt-3 md:mt-0 inline-flex items-center px-3 py-2 rounded-md border border-border text-sm hover:bg-[#D32F2F] hover:text-white hover:border-[#D32F2F] transition-all duration-300"
           >
             Open in Maps
           </a>

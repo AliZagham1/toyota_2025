@@ -4,10 +4,9 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
-import { Loader2, Keyboard } from "lucide-react"
+import { Loader2, Keyboard, Mic, NotebookPen, ChevronLeft } from "lucide-react"
 
 export default function PromptPage() {
   const router = useRouter()
@@ -93,105 +92,152 @@ export default function PromptPage() {
   }
 
   return (
-    <div>
-      <Header title="Describe Your Dream Car" subtitle="Tell us what you are looking for" />
-
-      <main className="max-w-2xl mx-auto px-6 py-12">
-        {/* Mode Toggle Button */}
-        <div className="flex justify-center mb-8">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={toggleInputMode}
-            disabled={loading}
-            className="gap-2"
-          >
-            <Keyboard className="w-4 h-4" />
-            {isVoiceMode ? "Switch to Text Input" : "Switch to Voice Input"}
-          </Button>
+    <div className="min-h-screen bg-white">
+      <main className="mx-auto max-w-2xl px-6 py-12 space-y-10">
+        <div className="space-y-2">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              disabled={loading}
+              className="gap-2 text-muted-foreground hover:bg-[#D32F2F] hover:text-white"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Back
+            </Button>
+          </div>
+          <h1 className="text-3xl font-bold text-foreground">Describe Your Dream Car</h1>
+          <p className="text-muted-foreground">Tell us what you are looking for</p>
         </div>
 
-        {/* Voice Input Mode */}
-        {isVoiceMode ? (
-          <div className="space-y-6">
-            <div className="text-center space-y-4">
-              <p className="text-sm font-medium text-foreground">Click the microphone to start speaking</p>
-
-              {/* Voice Recorder Component */}
-              <VoiceRecorder
-                onTranscript={handleVoiceTranscript}
-                onError={handleVoiceError}
-                disabled={loading}
-              />
-
-              {loading && (
-                <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">Processing your request...</span>
-                </div>
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold text-foreground">Share a few details</h2>
+          <p className="text-sm text-muted-foreground">
+            A short description about how you plan to use the vehicle and the features that matter will help us narrow
+            in on the right Toyota.
+          </p>
+          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Input mode</span>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={toggleInputMode}
+              disabled={loading}
+              className="flex items-center gap-2 text-sm font-semibold text-foreground hover:bg-[#D32F2F] hover:text-white"
+            >
+              {isVoiceMode ? (
+                <>
+                  <Keyboard className="h-4 w-4" />
+                  Switch to text
+                </>
+              ) : (
+                <>
+                  <Mic className="h-4 w-4" />
+                  Switch to voice
+                </>
               )}
+            </Button>
+          </div>
+        </section>
+
+        {isVoiceMode ? (
+          <section className="space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Tap the microphone and describe your ideal Toyota. We will process the transcript automatically.
+            </p>
+            <div className="flex justify-center">
+              <VoiceRecorder onTranscript={handleVoiceTranscript} onError={handleVoiceError} disabled={loading} />
             </div>
 
+            {loading && (
+              <div className="flex items-center justify-center gap-2 rounded-full bg-muted px-4 py-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm font-medium">Processing your request...</span>
+              </div>
+            )}
+
             {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {error}
               </div>
             )}
 
-            <div className="flex justify-between pt-4">
-              <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-[#D32F2F] hover:text-white"
+              >
                 Back
               </Button>
             </div>
-          </div>
+          </section>
         ) : (
-          /* Text Input Mode */
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <label htmlFor="description" className="block text-sm font-medium text-foreground">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <NotebookPen className="h-4 w-4" />
+                Description
+              </div>
+              <label htmlFor="description" className="text-lg font-semibold text-foreground">
                 What features matter most to you?
               </label>
-              <textarea
-                id="description"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="e.g., 'I need a reliable family SUV with great fuel efficiency, good cargo space, and modern tech features. Around $35,000 budget.'"
-                className="w-full h-32 px-4 py-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              />
+              <p className="text-sm text-muted-foreground">
+                Mention things like seating needs, fuel economy goals, technology must-haves, or budget guidance.
+              </p>
+            </div>
+            <textarea
+              id="description"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder='e.g., "I need a reliable family SUV with great fuel efficiency, plenty of cargo room, and advanced safety tech. My budget is around $35,000."'
+              className="min-h-36 w-full resize-none rounded-lg border border-border bg-white px-4 py-3 text-base text-foreground placeholder:text-muted-foreground focus:border-[#D32F2F] focus:outline-none focus:ring-2 focus:ring-[#D32F2F]/20"
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Helpful hint: include how you will use the vehicle day-to-day.</span>
+              <span>{input.trim().length} chars</span>
             </div>
 
             {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-lg text-destructive text-sm">
+              <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {error}
               </div>
             )}
 
-            <div className="flex gap-3 justify-between pt-4">
-              <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => router.back()}
+                disabled={loading}
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-[#D32F2F] hover:text-white"
+              >
                 Back
               </Button>
               <Button
                 type="submit"
                 disabled={!input.trim() || loading}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
+                className="flex items-center gap-2 rounded-full bg-[#D32F2F] px-6 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#D32F2F] hover:text-white disabled:opacity-50"
               >
-                {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Search
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                Find my Toyota
               </Button>
             </div>
           </form>
         )}
 
-        {/* Examples Section */}
-        <div className="mt-12 pt-12 border-t border-border">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Examples of what you can say:</h3>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• "I want a sporty sedan that's fun to drive but also fuel efficient"</li>
-            <li>• "Looking for a budget-friendly pickup truck for work and weekend trips"</li>
-            <li>• "Need a luxury vehicle with all the latest tech and comfort features"</li>
-            <li>• "Eco-conscious shopper looking for a hybrid with low emissions"</li>
+        <section className="space-y-3 text-sm text-muted-foreground">
+          <h3 className="text-sm font-semibold text-foreground">Example prompts</h3>
+          <ul className="space-y-1 list-disc pl-5">
+            <li>"I want a sporty sedan that's fun to drive but also fuel efficient."</li>
+            <li>"Looking for a budget-friendly pickup truck for work and weekend trips."</li>
+            <li>"Need a luxury vehicle with all the latest tech and comfort features."</li>
+            <li>"Eco-conscious shopper looking for a hybrid with low emissions."</li>
           </ul>
-        </div>
+        </section>
       </main>
     </div>
   )
