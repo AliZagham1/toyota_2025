@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -19,10 +19,27 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 
+const descriptions = [
+  "AI-powered vehicle matching that understands your needs...",
+  "Compare prices, features, and eco-ratings in seconds...",
+  "Find the perfect Toyota for your lifestyle and budget...",
+  "Get personalized recommendations based on your preferences..."
+]
+
 export default function LandingPage() {
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [typedText, setTypedText] = useState("")
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set(['hero']))
+  
+  // Refs for each section
+  const heroRef = useRef<HTMLElement>(null)
+  const startingPointRef = useRef<HTMLElement>(null)
+  const processRef = useRef<HTMLElement>(null)
+  const featuresRef = useRef<HTMLElement>(null)
+  const ctaRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +48,71 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const sectionId = entry.target.getAttribute('data-section-id')
+          if (sectionId) {
+            setVisibleSections((prev) => new Set(prev).add(sectionId))
+          }
+        }
+      })
+    }, observerOptions)
+
+    // Observe all sections
+    const refs = [heroRef, startingPointRef, processRef, featuresRef, ctaRef]
+    
+    refs.forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current)
+      }
+    })
+
+    return () => {
+      refs.forEach((ref) => {
+        if (ref.current) {
+          observer.unobserve(ref.current)
+        }
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    const currentDescription = descriptions[currentIndex]
+    let timeoutId: NodeJS.Timeout
+
+    if (typedText.length < currentDescription.length) {
+      timeoutId = setTimeout(() => {
+        setTypedText(currentDescription.slice(0, typedText.length + 1))
+      }, 50)
+    } else {
+      // Wait before moving to next description
+      timeoutId = setTimeout(() => {
+        setTypedText("")
+        setCurrentIndex((prev) => (prev + 1) % descriptions.length)
+      }, 3000)
+    }
+
+    return () => clearTimeout(timeoutId)
+  }, [typedText, currentIndex])
+
+  // Helper function to get animation classes
+  const getSectionClasses = (sectionId: string) => {
+    const isVisible = visibleSections.has(sectionId)
+    return `transition-all duration-1000 ease-out ${
+      isVisible 
+        ? 'opacity-100 translate-y-0' 
+        : 'opacity-0 translate-y-8'
+    }`
+  }
 
   const navItems = [
     { label: "Models", href: "/form" },
@@ -138,7 +220,11 @@ export default function LandingPage() {
       </header>
 
       {/* Hero - Enhanced with Unique Elements */}
-      <section className="relative min-h-screen flex items-center overflow-hidden pt-20">
+      <section 
+        ref={heroRef}
+        data-section-id="hero"
+        className={`relative min-h-screen flex items-center overflow-hidden pt-20 ${getSectionClasses('hero')}`}
+      >
         {/* Unique Geometric Pattern */}
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 right-20 w-64 h-64 border-2 border-[#D32F2F]/10 rounded-full"></div>
@@ -183,21 +269,19 @@ export default function LandingPage() {
                 </Button>
               </div>
 
-              {/* Enhanced Stats with Icons */}
-              <div className="flex items-center gap-12 pt-10 border-t border-border/50">
-                {[
-                  { value: "10K+", label: "Happy Customers", icon: "👥" },
-                  { value: "500+", label: "Vehicles", icon: "🚗" },
-                  { value: "4.9/5", label: "Rating", icon: "⭐" }
-                ].map((stat, index) => (
-                  <div key={index} className="group animate-fade-in-up" style={{ animationDelay: `${0.1 * index}s`, opacity: 0, animationFillMode: 'forwards' }}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xl group-hover:scale-110 transition-transform duration-300">{stat.icon}</span>
-                      <div className="text-3xl font-bold text-foreground group-hover:text-[#D32F2F] transition-colors">{stat.value}</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground">{stat.label}</div>
+              {/* Typing Animation */}
+              <div className="pt-10 border-t border-border/50">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Sparkles className="w-5 h-5 text-[#D32F2F] animate-pulse" />
                   </div>
-                ))}
+                  <div className="flex-1">
+                    <p className="text-lg md:text-xl text-foreground font-medium min-h-[1.5em]">
+                      {typedText}
+                      <span className="inline-block w-0.5 h-5 md:h-6 bg-[#D32F2F] ml-1 animate-pulse align-middle"></span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -207,14 +291,14 @@ export default function LandingPage() {
                 {/* Main Image Container with Glow Effect */}
                 <div className="relative aspect-3/4 rounded-3xl overflow-hidden bg-linear-to-br from-[#D32F2F]/10 via-muted/50 to-accent/10 border border-border/50 shadow-2xl group-hover:shadow-[#D32F2F]/20 transition-all duration-500">
                   <div className="absolute inset-0 bg-linear-to-br from-[#D32F2F]/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                    <div className="relative">
-                      <Car className="w-24 h-24 text-[#D32F2F]/30 mb-4 group-hover:scale-110 transition-transform duration-500" />
-                      <div className="absolute inset-0 bg-[#D32F2F]/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    </div>
-                    <p className="text-lg font-semibold text-foreground/60">Vehicle Image</p>
-                    <p className="text-sm text-muted-foreground">Placeholder</p>
-                  </div>
+                  <Image
+                    src="/car2.png"
+                    alt="Toyota Vehicle"
+                    width={800}
+                    height={600}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    priority
+                  />
                 </div>
 
                 {/* Floating Badge - Enhanced */}
@@ -243,7 +327,11 @@ export default function LandingPage() {
       </section>
 
       {/* Choose Your Starting Point - Fresh New Approach */}
-      <section className="py-32 px-6 relative">
+      <section 
+        ref={startingPointRef}
+        data-section-id="starting-point"
+        className={`py-32 px-6 relative ${getSectionClasses('starting-point')}`}
+      >
         <div className="max-w-5xl mx-auto">
           {/* Minimal Header */}
           <div className="text-center mb-20">
@@ -255,11 +343,11 @@ export default function LandingPage() {
           </div>
 
           {/* Two Large Interactive Panels */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {/* AI Prompt Option */}
             <div
               onClick={() => router.push("/prompt")}
-              className="group relative aspect-4/5 rounded-3xl overflow-hidden cursor-pointer"
+              className="group relative aspect-4/5 max-h-[500px] rounded-3xl overflow-hidden cursor-pointer"
             >
               {/* Background Gradient */}
               <div className="absolute inset-0 bg-linear-to-br from-[#D32F2F] via-[#B71C1C] to-[#D32F2F] opacity-90 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -273,18 +361,18 @@ export default function LandingPage() {
               </div>
 
               {/* Content */}
-              <div className="relative h-full flex flex-col justify-between p-10 text-white">
-                <div className="space-y-6">
-                  <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
-                    <MessageCircle className="w-8 h-8" />
+              <div className="relative h-full flex flex-col justify-between p-6 md:p-8 text-white">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+                    <MessageCircle className="w-6 h-6" />
                   </div>
                   
                   <div>
-                    <div className="text-sm font-semibold uppercase tracking-wider opacity-90 mb-2">AI-Powered</div>
-                    <h3 className="text-3xl md:text-4xl font-bold leading-tight mb-4">
+                    <div className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-2">AI-Powered</div>
+                    <h3 className="text-2xl md:text-3xl font-bold leading-tight mb-3">
                       Describe Your Dream Car
                     </h3>
-                    <p className="text-white/80 leading-relaxed text-lg">
+                    <p className="text-white/80 leading-relaxed text-base">
                       Tell us what you need in natural language. Our AI understands and finds perfect matches.
                     </p>
                   </div>
@@ -304,7 +392,7 @@ export default function LandingPage() {
             {/* Filter Form Option */}
             <div
               onClick={() => router.push("/form")}
-              className="group relative aspect-4/5 rounded-3xl overflow-hidden cursor-pointer border-2 border-border hover:border-accent/50 transition-all duration-500"
+              className="group relative aspect-4/5 max-h-[500px] rounded-3xl overflow-hidden cursor-pointer border-2 border-border hover:border-accent/50 transition-all duration-500"
             >
               {/* Background */}
               <div className="absolute inset-0 bg-linear-to-br from-background via-muted/30 to-background"></div>
@@ -318,18 +406,18 @@ export default function LandingPage() {
               </div>
 
               {/* Content */}
-              <div className="relative h-full flex flex-col justify-between p-10">
-                <div className="space-y-6">
-                  <div className="w-16 h-16 rounded-2xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
-                    <Filter className="w-8 h-8 text-accent group-hover:text-white transition-colors duration-500" />
+              <div className="relative h-full flex flex-col justify-between p-6 md:p-8">
+                <div className="space-y-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500">
+                    <Filter className="w-6 h-6 text-accent group-hover:text-white transition-colors duration-500" />
                   </div>
                   
                   <div>
-                    <div className="text-sm font-semibold text-accent uppercase tracking-wider mb-2">Advanced Filters</div>
-                    <h3 className="text-3xl md:text-4xl font-bold leading-tight mb-4 text-foreground">
+                    <div className="text-xs font-semibold text-accent uppercase tracking-wider mb-2">Advanced Filters</div>
+                    <h3 className="text-2xl md:text-3xl font-bold leading-tight mb-3 text-foreground">
                       Filter by Specifications
                     </h3>
-                    <p className="text-muted-foreground leading-relaxed text-lg">
+                    <p className="text-muted-foreground leading-relaxed text-base">
                       Use precise filters for price, model, features, and more. Perfect when you know what you want.
                     </p>
                   </div>
@@ -357,7 +445,11 @@ export default function LandingPage() {
       </section>
 
       {/* Process - Enhanced Timeline */}
-      <section className="py-32 px-6 bg-muted/20 relative overflow-hidden">
+      <section 
+        ref={processRef}
+        data-section-id="process"
+        className={`py-32 px-6 bg-muted/20 relative overflow-hidden ${getSectionClasses('process')}`}
+      >
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-linear-to-b from-transparent via-[#D32F2F] to-transparent"></div>
@@ -414,7 +506,11 @@ export default function LandingPage() {
       </section>
 
       {/* Key Features - Enhanced */}
-      <section className="py-32 px-6 relative">
+      <section 
+        ref={featuresRef}
+        data-section-id="features"
+        className={`py-32 px-6 relative ${getSectionClasses('features')}`}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-2 gap-20 items-center">
             {/* Left - Content */}
@@ -466,7 +562,11 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA - Enhanced */}
-      <section className="py-32 px-6 relative overflow-hidden">
+      <section 
+        ref={ctaRef}
+        data-section-id="cta"
+        className={`py-32 px-6 relative overflow-hidden ${getSectionClasses('cta')}`}
+      >
         {/* Background Effects */}
         <div className="absolute inset-0">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-linear-to-r from-[#D32F2F]/10 via-accent/10 to-[#D32F2F]/10 rounded-full blur-3xl"></div>

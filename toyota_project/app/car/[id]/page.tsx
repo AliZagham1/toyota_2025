@@ -193,17 +193,17 @@ const [dealerError, setDealerError] = useState<string | null>(null);
                 <p className="text-xs text-muted-foreground mb-2">Color</p>
                 <p className="font-semibold text-foreground">{car.color}</p>
               </Card>
-            </div>
 
-            {car.ecoRating && (
-              <Card className="p-6 border-2 border-accent bg-gradient-to-br from-accent/10 to-accent/5 shadow-md">
-                <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
-                  <span>🌱</span>
-                  Eco Rating
-                </p>
-                <p className="text-3xl font-bold text-accent">{car.ecoRating}/10</p>
-              </Card>
-            )}
+              {car.ecoRating && (
+                <Card className="p-4 border border-border hover:border-[#D32F2F]/50 hover:shadow-md transition-all duration-300">
+                  <p className="text-xs text-muted-foreground mb-2 flex items-center gap-2">
+                    <span>🌱</span>
+                    Eco Rating
+                  </p>
+                  <p className="font-semibold text-foreground">{car.ecoRating}/10</p>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
 

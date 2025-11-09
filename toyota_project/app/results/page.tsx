@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Fuel, DollarSign, Calendar } from "lucide-react"
 import type { Car } from "@/types"
 import { useStore } from "@/lib/store"
-import { ToyoChat } from "@/components/ToyoChat"
+import { ToyoAssistant } from "@/components/ui/ToyoAssistant"
 
 export default function ResultsPage() {
   const router = useRouter()
@@ -262,8 +262,8 @@ export default function ResultsPage() {
       {/* Unified Chat Widget */}
       {cars.length > 0 && (
         <div className="fixed bottom-6 right-6 z-50">
-          <ToyoChat cars={cars} originalQuery={originalDesc} />
-        </div>
+        {cars.length > 0 && <ToyoAssistant cars={cars} originalQuery={originalDesc} />}
+      </div>
       )}
     </div>
   )
