@@ -26,8 +26,127 @@ export interface ToyotaVehicle {
  * Fetches inventory from Toyota of Plano API
  * @param filters Optional filters to apply to the search
  */
+/**
+ * Helper function to build payload for a specific condition (new or used)
+ */
+function buildToyotaPayload(
+  inventoryParameters: any,
+  condition: "new" | "used"
+): any {
+  const isNew = condition === "new"
+  const pageAlias = isNew
+    ? "INVENTORY_LISTING_DEFAULT_AUTO_NEW"
+    : "INVENTORY_LISTING_DEFAULT_AUTO_USED"
+  const pageId = isNew
+    ? "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1"
+    : "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1"
+  const listingConfigId = isNew ? "auto-new" : "auto-used"
+
+  return {
+    siteId: "toyotaofplanogst",
+    locale: "en_US",
+    device: "DESKTOP",
+    pageAlias: pageAlias,
+    pageId: pageId,
+    windowId: "inventory-data-bus2",
+    widgetName: "ws-inv-data",
+    inventoryParameters: inventoryParameters,
+    preferences: {
+      widgetClasses: "spacing-reset",
+      pageSize: "50",
+      "listing.config.id": listingConfigId,
+      "listing.boost.order": "account,make,model,bodyStyle,trim,optionCodes,modelCode,fuelType",
+      removeEmptyFacets: "true",
+      removeEmptyConstraints: "true",
+      displayerInstanceId: isNew
+        ? "INVENTORY_LISTING_DEFAULT_AUTO_NEW:inventory-data-bus1_1673036815"
+        : "",
+      "required.display.sets":
+        "TITLE,IMAGE_ALT,IMAGE_TITLE,PRICE,FEATURED_ITEMS,CALLOUT,LISTING,HIGHLIGHTED_ATTRIBUTES",
+      "required.display.attributes":
+        "accountCity,accountCountry,accountId,accountName,accountState,accountZipcode,askingPrice,attributes,autodataCaId_att_data,bed,bodyStyle,cab,carfaxIconUrl,carfaxIconUrlBlackWhite,carfaxUrl,carfaxValueBadgeAltText,categoryName,certified,chromeId_att_data,cityMpg,classification,classificationName,comments,courtesy,cpoChecklistUrl,daysOnLot,dcpaisVideoToken_att_data,deliveryDateRange,doors,driveLine,ebayAuctionId,eleadPrice,eleadPriceLessOEMCash,engine,engineSize,equipment,extColor,exteriorColor,fuelType,globalVehicleTrimId,gvLongTrimDescription,gvTrim,hasCarFaxReport,hideInternetPrice,highwayMpg,id,incentives,intColor,interiorColor,interiorColorCode,internetComments,internetPrice,inventoryDate,invoicePrice,isElectric_att_b,key,location,make,marketingTitle,mileage,model,modelCode,msrp,normalExteriorColor,normalFuelType,normalInteriorColor,numSaves,odometer,oemSerialNumber,oemSourcedMerchandisingStatus,optionCodes,options,packageCode,packages_internal,parent,parentId,paymentMonthly,payments,primary_image,propertyDescription,retailValue,saleLease,salePrice,sharedVehicle,status,stockNumber,transmission,trim,trimLevel,type,uuid,video,vin,warrantyDescription,wholesalePrice,year,cpoTier",
+      "required.display.attributes.extra": "",
+      facetInstanceId: isNew
+        ? "INVENTORY_LISTING_DEFAULT_AUTO_NEW:inventory-data-bus1_1684257599"
+        : "listing",
+      geoLocationEnabled: "false",
+      defaultGeoDistRadius: "0",
+      geoRadiusValues: "0,5,25,50,100,250,500,1000",
+      showCertifiedFranchiseVehiclesOnly: "false",
+      showFranchiseVehiclesOnly: "true",
+      extraFranchisesForUsedWindowStickers: "",
+      suppressAllConditions: "compliant",
+      violateUsedCompliance: "false",
+      showOffSiteInventoryBanner: isNew ? "true" : "false",
+      showPhotosViewer: "true",
+      offsetSharedVehicleImageByOne: "false",
+      certifiedLogoColor: "",
+      certifiedDefaultPath: "",
+      certifiedDefaultLogoOnly: "false",
+      transferBadgeImage: "",
+      transferBadgeType: "DARK",
+      transferLinkHref: "",
+      certifiedBadgeLinkHref: "",
+      certifiedBadgeTooltip: "",
+      certifiedBadgeLinkTarget: "_self",
+      inTransitStatuses: "",
+      customInTransitLogoUrl: "",
+      carfaxLogoBlackWhite: "false",
+      hideCertifiedDefaultLogo: "false",
+      sorts: "year,normalBodyStyle,normalExteriorColor,odometer,internetPrice",
+      sortsTitles: "YEAR,BODYSTYLE,COLOR,MILEAGE,PRICE",
+      inventoryDateFormat: "MM_DD_YYYY_FORMAT",
+      offsiteInventoryMarkup: "0",
+      geoLocationEnhanced: "false",
+      showLocationTab: "true",
+      showEffectiveStartDate: "true",
+      showIncentiveTitleSubText: "true",
+      showIncentiveAmountAndLabel: "true",
+      showIncentiveDisclaimer: "true",
+      showIncentiveEffectiveDates: "true",
+      newCarBoostEnable: "false",
+      newCarBoostListingConfigId: "auto-new",
+      numberOfSpotlightVehicles: "0",
+      disableGeodistSort: "false",
+      linkToDealCentralVDP: "false",
+      removeOdometerOnNew: "true",
+      finalPriceOverrideField: "",
+    },
+    includePricing: true,
+    flags: {
+      "vcda-js-environment": "live",
+      "ws-scripts-concurrency-limits-concurrency": 16,
+      "ws-scripts-concurrency-limits-queue": 16,
+      "ws-scripts-concurrency-limits-enabled": true,
+      "ws-itemlist-service-version": "v5",
+      "ws-itemlist-model-version": "v1",
+      "ws-scripts-inline-css": true,
+      "ws-inv-data-fetch-timeout": 30000,
+      "ws-inv-data-fetch-retries": 2,
+      "ws-inv-data-use-wis": true,
+      "ws-inv-data-wis-fetch-timeout": 5000,
+      "srp-track-fetch-resource-timing": false,
+      "ws-inv-data-location-service-fetch-timeout": 3000,
+      "ws-inv-data-location-service-fetch-retries": 2,
+      "enable-client-side-geolocation-ws-inv-data": true,
+      "ws-inv-data-spellcheck-proxy-timeout": 5000,
+      "ws-inv-data-spellcheck-server-timeout": 1500,
+      "ws-inv-data-spellcheck-server-retries": 0,
+      "srp-toggle-databus-editor": true,
+      "srp-send-ws-inv-data-prefs-to-wis": true,
+      "ddc-ab-testing": "CONTROL",
+      "ws-inv-data-toggle-refactor": false,
+    },
+  }
+}
+
+/**
+ * Fetches inventory from Toyota of Plano API
+ * @param filters Optional filters to apply to the search
+ */
 export async function getToyotaInventory(filters?: {
   priceRange?: { min: number; max: number }
+  priceRanges?: Array<{ min: number; max: number }>
   yearRange?: { min: number; max: number }
   year?: number
   model?: string
@@ -35,21 +154,22 @@ export async function getToyotaInventory(filters?: {
   fuelType?: string
   bodyStyle?: string
   color?: string
-  condition?: "new" | "used"
+  condition?: "new" | "used" | "both"
+  mileage?: { min: number; max: number }
+  interiorColor?: string
+  transmission?: string
+  options?: string[]
+  highwayMpg?: number
+  cityMpg?: number
+  overallMpg?: number
+  interiorMaterial?: string
+  engine?: string
+  driveLine?: string
+  vehicleStatus?: "In Stock" | "In Transit" | "Build Phase"
 }): Promise<ToyotaVehicle[]> {
   try {
     // Build inventoryParameters from filters - map directly to Toyota API format
     const inventoryParameters: any = {}
-
-    // Determine page alias and config based on condition
-    const isNew = filters?.condition !== "used"
-    const pageAlias = isNew
-      ? "INVENTORY_LISTING_DEFAULT_AUTO_NEW"
-      : "INVENTORY_LISTING_DEFAULT_AUTO_USED"
-    const pageId = isNew
-      ? "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1"
-      : "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1"
-    const listingConfigId = isNew ? "auto-new" : "auto-used"
 
     // Map filters directly to inventoryParameters (exact format from example)
     if (filters?.model) {
@@ -87,150 +207,219 @@ export async function getToyotaInventory(filters?: {
     }
 
     if (filters?.color) {
-      inventoryParameters.exteriorColor = filters.color
+      // Use normalExteriorColor for better matching (Toyota API uses normalized colors)
+      inventoryParameters.normalExteriorColor = filters.color
     }
 
-    if (filters?.priceRange) {
-      inventoryParameters.internetPrice = `${filters.priceRange.min}-${filters.priceRange.max}`
+    // Interior color filter
+    if (filters?.interiorColor) {
+      inventoryParameters.normalInteriorColor = filters.interiorColor
     }
 
-    if (filters?.condition) {
-      inventoryParameters.type = filters.condition === "new" ? "new" : "used"
+    // Transmission filter
+    if (filters?.transmission) {
+      inventoryParameters.normalTransmission = filters.transmission
+    }
+
+    // Vehicle options/features filter (e.g., "Apple CarPlay", "Android Auto", "Sunroof")
+    if (filters?.options && filters.options.length > 0) {
+      // Toyota API accepts single option, so use the first one
+      // Multiple options could be handled by making multiple API calls if needed
+      inventoryParameters.gvOption = filters.options[0]
+    }
+
+    // Highway MPG filter (minimum highway MPG)
+    if (filters?.highwayMpg) {
+      // Format as "35-" for 35+ MPG
+      inventoryParameters.highwayFuelEconomy = `${filters.highwayMpg}-`
+    }
+
+    // City MPG filter (minimum city MPG)
+    if (filters?.cityMpg) {
+      // Format as "25-" for 25+ MPG
+      inventoryParameters.cityFuelEconomy = `${filters.cityMpg}-`
+    }
+
+    // Interior material filter
+    if (filters?.interiorMaterial) {
+      inventoryParameters.normalInteriorMaterial = filters.interiorMaterial
+    }
+
+    // Engine filter
+    if (filters?.engine) {
+      inventoryParameters.engine = filters.engine
+    }
+
+    // Drive line filter (FWD, AWD, RWD, 4WD)
+    if (filters?.driveLine) {
+      inventoryParameters.normalDriveLine = filters.driveLine
+    }
+
+    // Handle price ranges - Toyota API expects array of strings like ["30000-39999", "20000-29999"]
+    console.log("[Toyota API] Price filter check:")
+    console.log("  - priceRanges:", filters?.priceRanges)
+    console.log("  - priceRange:", filters?.priceRange)
+    
+    if (filters?.priceRanges && filters.priceRanges.length > 0) {
+      inventoryParameters.internetPrice = filters.priceRanges.map(
+        (range) => `${range.min}-${range.max}`
+      )
+      console.log("[Toyota API] Using priceRanges:", inventoryParameters.internetPrice)
+    } else if (filters?.priceRange) {
+      // Fallback to single price range
+      inventoryParameters.internetPrice = [`${filters.priceRange.min}-${filters.priceRange.max}`]
+      console.log("[Toyota API] Using priceRange:", inventoryParameters.internetPrice)
+    } else {
+      console.log("[Toyota API] No price filter applied")
+    }
+
+    // Determine which conditions to fetch
+    const conditionsToFetch: ("new" | "used")[] = []
+    if (!filters?.condition || filters.condition === "both") {
+      // Fetch both new and used
+      conditionsToFetch.push("new", "used")
+    } else {
+      // Fetch only the specified condition
+      conditionsToFetch.push(filters.condition)
+    }
+
+    // Don't add type filter if fetching both
+    if (conditionsToFetch.length === 1) {
+      inventoryParameters.type = conditionsToFetch[0]
+    }
+
+    // Handle mileage/odometer filter - Toyota API uses odometer
+    // Only apply odometer filter for used cars (new cars typically have 0 miles and API may ignore it)
+    // We'll also apply client-side filtering as a fallback
+    if (filters?.mileage) {
+      // Only add odometer filter if we're fetching used cars
+      // If fetching both, we'll filter client-side after fetching
+      if (conditionsToFetch.length === 1 && conditionsToFetch[0] === "used") {
+        inventoryParameters.odometer = `${filters.mileage.min}-${filters.mileage.max}`
+        console.log("[Toyota API] Using mileage filter (odometer) for used cars:", inventoryParameters.odometer)
+      } else {
+        console.log("[Toyota API] Mileage filter will be applied client-side after fetching (fetching both new/used or new only)")
+      }
     }
 
     // Log inventoryParameters for debugging
     console.log("[Toyota API] inventoryParameters:", JSON.stringify(inventoryParameters, null, 2))
+    console.log("[Toyota API] Fetching conditions:", conditionsToFetch)
 
-    const payload = {
-      siteId: "toyotaofplanogst",
-      locale: "en_US",
-      device: "DESKTOP",
-      pageAlias: pageAlias,
-      pageId: pageId,
-      windowId: "inventory-data-bus2",
-      widgetName: "ws-inv-data",
-      inventoryParameters: inventoryParameters,
-      preferences: {
-        widgetClasses: "spacing-reset",
-        pageSize: "50",
-        "listing.config.id": listingConfigId,
-        "listing.boost.order": "account,make,model,bodyStyle,trim,optionCodes,modelCode,fuelType",
-        removeEmptyFacets: "true",
-        removeEmptyConstraints: "true",
-        displayerInstanceId: "INVENTORY_LISTING_DEFAULT_AUTO_NEW:inventory-data-bus1_1673036815",
-        "required.display.sets":
-          "TITLE,IMAGE_ALT,IMAGE_TITLE,PRICE,FEATURED_ITEMS,CALLOUT,LISTING,HIGHLIGHTED_ATTRIBUTES",
-        "required.display.attributes":
-          "accountCity,accountCountry,accountId,accountName,accountState,accountZipcode,askingPrice,attributes,autodataCaId_att_data,bed,bodyStyle,cab,carfaxIconUrl,carfaxIconUrlBlackWhite,carfaxUrl,carfaxValueBadgeAltText,categoryName,certified,chromeId_att_data,cityMpg,classification,classificationName,comments,courtesy,cpoChecklistUrl,daysOnLot,dcpaisVideoToken_att_data,deliveryDateRange,doors,driveLine,ebayAuctionId,eleadPrice,eleadPriceLessOEMCash,engine,engineSize,equipment,extColor,exteriorColor,fuelType,globalVehicleTrimId,gvLongTrimDescription,gvTrim,hasCarFaxReport,hideInternetPrice,highwayMpg,id,incentives,intColor,interiorColor,interiorColorCode,internetComments,internetPrice,inventoryDate,invoicePrice,isElectric_att_b,key,location,make,marketingTitle,mileage,model,modelCode,msrp,normalExteriorColor,normalFuelType,normalInteriorColor,numSaves,odometer,oemSerialNumber,oemSourcedMerchandisingStatus,optionCodes,options,packageCode,packages_internal,parent,parentId,paymentMonthly,payments,primary_image,propertyDescription,retailValue,saleLease,salePrice,sharedVehicle,status,stockNumber,transmission,trim,trimLevel,type,uuid,video,vin,warrantyDescription,wholesalePrice,year,cpoTier",
-        "required.display.attributes.extra": "",
-        facetInstanceId: "INVENTORY_LISTING_DEFAULT_AUTO_NEW:inventory-data-bus1_1684257599",
-        geoLocationEnabled: "false",
-        defaultGeoDistRadius: "0",
-        geoRadiusValues: "0,5,25,50,100,250,500,1000",
-        showCertifiedFranchiseVehiclesOnly: "false",
-        showFranchiseVehiclesOnly: "true",
-        extraFranchisesForUsedWindowStickers: "",
-        suppressAllConditions: "compliant",
-        violateUsedCompliance: "false",
-        showOffSiteInventoryBanner: "true",
-        showPhotosViewer: "true",
-        offsetSharedVehicleImageByOne: "false",
-        certifiedLogoColor: "",
-        certifiedDefaultPath: "",
-        certifiedDefaultLogoOnly: "false",
-        transferBadgeImage: "",
-        transferBadgeType: "DARK",
-        transferLinkHref: "",
-        certifiedBadgeLinkHref: "",
-        certifiedBadgeTooltip: "",
-        certifiedBadgeLinkTarget: "_self",
-        inTransitStatuses: "",
-        customInTransitLogoUrl: "",
-        carfaxLogoBlackWhite: "false",
-        hideCertifiedDefaultLogo: "false",
-        sorts: "year,normalBodyStyle,normalExteriorColor,odometer,internetPrice",
-        sortsTitles: "YEAR,BODYSTYLE,COLOR,MILEAGE,PRICE",
-        inventoryDateFormat: "MM_DD_YYYY_FORMAT",
-        offsiteInventoryMarkup: "0",
-        geoLocationEnhanced: "false",
-        showLocationTab: "true",
-        showEffectiveStartDate: "true",
-        showIncentiveTitleSubText: "true",
-        showIncentiveAmountAndLabel: "true",
-        showIncentiveDisclaimer: "true",
-        showIncentiveEffectiveDates: "true",
-        newCarBoostEnable: "false",
-        newCarBoostListingConfigId: "auto-new",
-        numberOfSpotlightVehicles: "0",
-        disableGeodistSort: "false",
-        linkToDealCentralVDP: "false",
-        removeOdometerOnNew: "true",
-        finalPriceOverrideField: "",
-      },
-      includePricing: true,
-      flags: {
-        "vcda-js-environment": "live",
-        "ws-scripts-concurrency-limits-concurrency": 16,
-        "ws-scripts-concurrency-limits-queue": 16,
-        "ws-scripts-concurrency-limits-enabled": true,
-        "ws-itemlist-service-version": "v5",
-        "ws-itemlist-model-version": "v1",
-        "ws-scripts-inline-css": true,
-        "ws-inv-data-fetch-timeout": 30000,
-        "ws-inv-data-fetch-retries": 2,
-        "ws-inv-data-use-wis": true,
-        "ws-inv-data-wis-fetch-timeout": 5000,
-        "srp-track-fetch-resource-timing": false,
-        "ws-inv-data-location-service-fetch-timeout": 3000,
-        "ws-inv-data-location-service-fetch-retries": 2,
-        "enable-client-side-geolocation-ws-inv-data": true,
-        "ws-inv-data-spellcheck-proxy-timeout": 5000,
-        "ws-inv-data-spellcheck-server-timeout": 1500,
-        "ws-inv-data-spellcheck-server-retries": 0,
-        "srp-toggle-databus-editor": true,
-        "srp-send-ws-inv-data-prefs-to-wis": true,
-        "ddc-ab-testing": "CONTROL",
-        "ws-inv-data-toggle-refactor": false,
-      },
-    }
+    // Fetch from all specified conditions in parallel
+    const fetchPromises = conditionsToFetch.map(async (condition) => {
+      const payload = buildToyotaPayload(inventoryParameters, condition)
+      const referer = condition === "new"
+        ? "https://www.toyotaofplano.com/new-inventory/index.htm"
+        : "https://www.toyotaofplano.com/used-inventory/index.htm"
 
-    // Log the full payload for debugging
-    console.log("[Toyota API] ===== FULL PAYLOAD START =====")
-    console.log(JSON.stringify(payload, null, 2))
-    console.log("[Toyota API] ===== FULL PAYLOAD END =====")
+      console.log(`[Toyota API] Fetching ${condition} vehicles...`)
 
-    const response = await fetch("https://www.toyotaofplano.com/api/widget/ws-inv-data/getInventory", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "Accept-Language": "en-US,en;q=0.9",
-        Origin: "https://www.toyotaofplano.com",
-        Referer: "https://www.toyotaofplano.com/new-inventory/index.htm",
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
-      },
-      body: JSON.stringify(payload),
+      const response = await fetch("https://www.toyotaofplano.com/api/widget/ws-inv-data/getInventory", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "Accept-Language": "en-US,en;q=0.9",
+          Origin: "https://www.toyotaofplano.com",
+          Referer: referer,
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        console.error(`[Toyota API] ${condition} response error:`, response.status, response.statusText)
+        const errorText = await response.text().catch(() => "")
+        console.error(`[Toyota API] ${condition} error details:`, errorText)
+        // Don't throw, just return empty array for this condition
+        return []
+      }
+
+      const data = await response.json()
+      console.log(`[Toyota API] ${condition} vehicles fetched:`, data?.inventory?.length || 0)
+
+      // Transform the API response to our vehicle format
+      return transformToyotaResponse(data)
     })
 
-    if (!response.ok) {
-      console.error("[Toyota API] Response error:", response.status, response.statusText)
-      const errorText = await response.text().catch(() => "")
-      console.error("[Toyota API] Error details:", errorText)
-      throw new Error(`Toyota API error: ${response.status}`)
+    // Wait for all fetches to complete
+    const results = await Promise.all(fetchPromises)
+    
+    // Combine all vehicles from different conditions
+    let allVehicles = results.flat()
+    console.log(`[Toyota API] Total vehicles fetched before filtering: ${allVehicles.length} (${conditionsToFetch.join(" + ")})`)
+
+    // Apply client-side mileage filter if provided (as fallback since API may not respect it)
+    if (filters?.mileage) {
+      const beforeCount = allVehicles.length
+      allVehicles = allVehicles.filter((vehicle) => {
+        const vehicleMileage = vehicle.mileage || 0
+        const inRange = vehicleMileage >= filters.mileage!.min && vehicleMileage <= filters.mileage!.max
+        if (!inRange) {
+          console.log(`[Toyota API] Filtering out vehicle: ${vehicle.year} ${vehicle.model} with ${vehicleMileage} miles (outside range ${filters.mileage!.min}-${filters.mileage!.max})`)
+        }
+        return inRange
+      })
+      console.log(`[Toyota API] After mileage filter: ${allVehicles.length} vehicles (removed ${beforeCount - allVehicles.length})`)
     }
 
-    const data = await response.json()
+    // Apply client-side overall MPG filter (average of city and highway)
+    if (filters?.overallMpg) {
+      const beforeCount = allVehicles.length
+      allVehicles = allVehicles.filter((vehicle) => {
+        const avgMpg = (vehicle.cityMpg + vehicle.highwayMpg) / 2
+        const meetsMpg = avgMpg >= filters.overallMpg!
+        if (!meetsMpg) {
+          console.log(`[Toyota API] Filtering out vehicle: ${vehicle.year} ${vehicle.model} with ${avgMpg.toFixed(1)} avg MPG (below ${filters.overallMpg})`)
+        }
+        return meetsMpg
+      })
+      console.log(`[Toyota API] After overall MPG filter: ${allVehicles.length} vehicles (removed ${beforeCount - allVehicles.length})`)
+    }
 
-    // Log the API response structure for debugging
-    console.log("[Toyota API] ===== API RESPONSE START =====")
-    console.log("Response keys:", Object.keys(data))
-    console.log("Response structure sample:", JSON.stringify(data, null, 2).substring(0, 2000))
-    console.log("[Toyota API] ===== API RESPONSE END =====")
+    // Apply client-side vehicle status filter (if API response includes status field)
+    // Note: This will filter based on status field in the API response if available
+    // Vehicle status filtering may need to be done based on API response structure
+    if (filters?.vehicleStatus) {
+      console.log(`[Toyota API] Vehicle status filter requested: ${filters.vehicleStatus} (may need API response structure check)`)
+      // TODO: Implement status filtering once we know the exact field name in API response
+    }
 
-    // Transform the API response to our vehicle format
-    const vehicles = transformToyotaResponse(data)
-    return vehicles
+    // Apply client-side filtering for year (as fallback since API may not respect it)
+    if (filters?.year) {
+      const beforeCount = allVehicles.length
+      allVehicles = allVehicles.filter((vehicle) => {
+        const matchesYear = vehicle.year === filters.year!
+        if (!matchesYear) {
+          console.log(`[Toyota API] Filtering out vehicle: ${vehicle.year} ${vehicle.model} (doesn't match year ${filters.year})`)
+        }
+        return matchesYear
+      })
+      console.log(`[Toyota API] After year filter: ${allVehicles.length} vehicles (removed ${beforeCount - allVehicles.length})`)
+    }
+
+    // Apply client-side filtering for trim (as fallback since API may not respect it exactly)
+    if (filters?.trim) {
+      const beforeCount = allVehicles.length
+      const trimFilter = filters.trim.trim().toUpperCase()
+      allVehicles = allVehicles.filter((vehicle) => {
+        const vehicleTrim = (vehicle.trim || "").trim().toUpperCase()
+        // Exact match: "LE" should match "LE" but not "XLE"
+        // Allow matches like "LE", "LE Premium", "LE Hybrid" but not "XLE", "SE", etc.
+        // Match if trim equals filter exactly, or starts with filter followed by a space
+        const matchesTrim = vehicleTrim === trimFilter || vehicleTrim.startsWith(trimFilter + " ")
+        
+        if (!matchesTrim) {
+          console.log(`[Toyota API] Filtering out vehicle: ${vehicle.year} ${vehicle.model} ${vehicle.trim} (trim "${vehicleTrim}" doesn't match "${trimFilter}")`)
+        }
+        return matchesTrim
+      })
+      console.log(`[Toyota API] After trim filter: ${allVehicles.length} vehicles (removed ${beforeCount - allVehicles.length})`)
+    }
+
+    return allVehicles
   } catch (error) {
     console.error("[Toyota API] Error fetching inventory:", error)
     throw error
@@ -274,13 +463,26 @@ function transformToyotaResponse(data: any): ToyotaVehicle[] {
     return attr?.value
   }
 
+  // Helper function to extract value from attributes array (different structure)
+  const getAttribute = (attributes: any[], name: string): string | undefined => {
+    if (!attributes || !Array.isArray(attributes)) return undefined
+    const attr = attributes.find((a: any) => a.name === name)
+    return attr?.value
+  }
+
   const vehicles: ToyotaVehicle[] = results
     .map((result: any, index: number) => {
       // Extract data directly from result object (API structure has data at top level)
       const trackingAttributes = result.trackingAttributes || []
+      const attributes = result.attributes || [] // Attributes array with name/value pairs
       const trackingPricing = result.trackingPricing || {}
       const pricing = result.pricing || {}
       const images = result.images || []
+      
+      // Log attributes structure for first item to debug
+      if (index === 0) {
+        console.log("[Transform] Attributes array sample:", JSON.stringify(attributes.slice(0, 5), null, 2))
+      }
 
       // Extract image URL - check multiple possible locations
       let imageUrl: string | undefined
@@ -365,33 +567,48 @@ function transformToyotaResponse(data: any): ToyotaVehicle[] {
                          internetPrice || 
                          0
 
-      // Extract mileage/odometer
-      const mileage = Number(result.odometer) || 
-                     Number(result.mileage) || 
-                     0
+      // Extract mileage/odometer - check attributes array first (has name="odometer" with value="X miles")
+      let mileage = 0
+      
+      // Try to get odometer from attributes array
+      const odometerValue = getAttribute(attributes, "odometer")
+      if (odometerValue) {
+        // Parse string like "3 miles" or "15000 miles" to extract number
+        const mileageMatch = odometerValue.toString().match(/(\d+(?:,\d+)?)/)
+        if (mileageMatch) {
+          mileage = Number(mileageMatch[1].replace(/,/g, ""))
+        }
+      }
+      
+      // Fallback to direct fields if not found in attributes
+      if (mileage === 0) {
+        mileage = Number(result.odometer) || 
+                 Number(result.mileage) || 
+                 0
+      }
+      
+      // Log mileage extraction for first item
+      if (index === 0) {
+        console.log("[Transform] Odometer from attributes:", odometerValue)
+        console.log("[Transform] Extracted mileage:", mileage)
+      }
 
       // Extract MPG - check trackingAttributes first, then attributes array, then direct fields
       let cityMpg = Number(getTrackingAttribute(trackingAttributes, "cityMpg") || 
                           getTrackingAttribute(trackingAttributes, "mpgCity") ||
+                          getAttribute(attributes, "cityMpg") ||
+                          getAttribute(attributes, "mpgCity") ||
                           result.cityMpg || 
                           result.mpgCity || 
                           0)
       
       let highwayMpg = Number(getTrackingAttribute(trackingAttributes, "highwayMpg") || 
                               getTrackingAttribute(trackingAttributes, "mpgHighway") ||
+                              getAttribute(attributes, "highwayMpg") ||
+                              getAttribute(attributes, "mpgHighway") ||
                               result.highwayMpg || 
                               result.mpgHighway || 
                               0)
-      
-      // If still no MPG, try attributes array
-      if ((cityMpg === 0 || highwayMpg === 0) && result.attributes && Array.isArray(result.attributes)) {
-        result.attributes.forEach((attr: any) => {
-          if (attr.cityMpg && !cityMpg) cityMpg = Number(attr.cityMpg)
-          if (attr.mpgCity && !cityMpg) cityMpg = Number(attr.mpgCity)
-          if (attr.highwayMpg && !highwayMpg) highwayMpg = Number(attr.highwayMpg)
-          if (attr.mpgHighway && !highwayMpg) highwayMpg = Number(attr.mpgHighway)
-        })
-      }
 
       return {
         id: result.uuid || result.id || `${result.vin || result.stockNumber || Date.now()}-${index}`,

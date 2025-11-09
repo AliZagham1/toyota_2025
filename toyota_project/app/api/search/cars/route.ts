@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     // Prepare filters for Toyota API (server-side filtering) - map directly to inventoryParameters format
     const toyotaFilters = {
       priceRange: filters.priceRange,
+      priceRanges: filters.priceRanges, // Multiple price ranges
       year: filters.year, // Pass year directly as single value (will be converted to string)
       yearRange: filters.year ? undefined : undefined, // Only use if year not provided
       model: filters.model,
@@ -25,35 +26,60 @@ export async function POST(request: NextRequest) {
       fuelType: filters.fuelType,
       bodyStyle: filters.model, // Model filter might be body style
       color: filters.color,
-      condition: filters.condition || "new", // Default to new if not specified
+      mileage: filters.mileage, // Mileage filter for odometer
+      condition: (filters.condition || "both") as "new" | "used" | "both", // Default to both new and used
+      interiorColor: filters.interiorColor,
+      transmission: filters.transmission,
+      options: filters.options,
+      highwayMpg: filters.highwayMpg,
+      cityMpg: filters.cityMpg,
+      overallMpg: filters.overallMpg,
+      interiorMaterial: filters.interiorMaterial,
+      engine: filters.engine,
+      driveLine: filters.driveLine,
+      vehicleStatus: filters.vehicleStatus,
     }
+
+    // Log the filters being sent to Toyota API
+    console.log("[Cars Search] Filters being sent to Toyota API:", JSON.stringify(toyotaFilters, null, 2))
 
     // Fetch cars from Toyota API with filters applied server-side
     const filtered = await getToyotaInventory(toyotaFilters)
     console.log("[Cars Search] Retrieved", filtered.length, "vehicles from Toyota API")
+    
+    // Log sample of returned vehicles for debugging
+    if (filtered.length > 0) {
+      console.log("[Cars Search] Sample vehicle:", {
+        year: filtered[0].year,
+        model: filtered[0].model,
+        trim: filtered[0].trim,
+      })
+    }
 
     // Transform to Car format for the app
-    const cars: Car[] = filtered.map((vehicle) => ({
-      id: vehicle.id,
-      name: `${vehicle.year} Toyota ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
-      model: vehicle.model,
-      make: vehicle.make,
-      price: vehicle.internetPrice || vehicle.askingPrice || 0,
-      year: vehicle.year,
-      mileage: vehicle.mileage,
-      color: vehicle.exteriorColor,
-      fuelType: vehicle.fuelType,
-      mpg: Math.round((vehicle.cityMpg + vehicle.highwayMpg) / 2),
-      imageUrl:
-        vehicle.imageUrl || `/placeholder.svg?height=300&width=400&query=Toyota ${vehicle.model} ${vehicle.year}`,
-      specs: {
-        transmission: vehicle.transmission,
-        engine: vehicle.engine,
-        seats: vehicle.seats || 5,
-      },
-      ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
-      isNew: vehicle.isNew,
-    }))
+    const cars: Car[] = filtered
+      .map((vehicle) => ({
+        id: vehicle.id,
+        name: `${vehicle.year} Toyota ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
+        model: vehicle.model,
+        make: vehicle.make,
+        price: vehicle.internetPrice || vehicle.askingPrice || 0,
+        year: vehicle.year,
+        mileage: vehicle.mileage,
+        color: vehicle.exteriorColor,
+        fuelType: vehicle.fuelType,
+        mpg: Math.round((vehicle.cityMpg + vehicle.highwayMpg) / 2),
+        imageUrl:
+          vehicle.imageUrl || `/placeholder.svg?height=300&width=400&query=Toyota ${vehicle.model} ${vehicle.year}`,
+        specs: {
+          transmission: vehicle.transmission,
+          engine: vehicle.engine,
+          seats: vehicle.seats || 5,
+        },
+        ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
+        isNew: vehicle.isNew,
+      }))
+      .filter((car) => car.price > 0) // Filter out cars with $0 price
 
     return NextResponse.json({
       success: true,

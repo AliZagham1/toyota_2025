@@ -107,7 +107,7 @@ export default function CarDetailPage() {
                 <div className="flex items-center gap-2">
                   <Zap className="w-5 h-5 text-primary" />
                   <p className="font-semibold text-foreground">
-                    {car.isNew ? "New" : `${car.mileage.toLocaleString()} mi`}
+                    {car.mileage > 0 ? `${car.mileage.toLocaleString()} mi` : "New"}
                   </p>
                 </div>
               </Card>

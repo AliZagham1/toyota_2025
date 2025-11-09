@@ -6,7 +6,7 @@ import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Loader2, Fuel, Gauge, DollarSign, Calendar } from "lucide-react"
+import { Loader2, Fuel, DollarSign, Calendar } from "lucide-react"
 import type { Car } from "@/types"
 import { useStore } from "@/lib/store"
 
@@ -142,16 +142,12 @@ export default function ResultsPage() {
                         <span className="font-semibold">${(car.price || 0).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-foreground">
-                        <Gauge className="w-4 h-4 text-primary" />
-                        <span>{car.mpg} MPG</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-foreground">
                         <Fuel className="w-4 h-4 text-primary" />
                         <span className="capitalize">{car.fuelType}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-foreground">
                         <Calendar className="w-4 h-4 text-primary" />
-                        <span>{car.isNew ? "New" : `${car.mileage.toLocaleString()} miles`}</span>
+                        <span>{car.mileage > 0 ? `${car.mileage.toLocaleString()} miles` : "New"}</span>
                       </div>
                     </div>
 

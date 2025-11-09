@@ -60,7 +60,7 @@ export default function ComparisonPage() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Mileage</span>
-                      <span className="font-semibold">{car.isNew ? "New" : `${car.mileage.toLocaleString()} mi`}</span>
+                      <span className="font-semibold">{car.mileage > 0 ? `${car.mileage.toLocaleString()} mi` : "New"}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Seats</span>
