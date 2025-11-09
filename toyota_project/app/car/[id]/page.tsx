@@ -5,9 +5,15 @@ import { useRouter, useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, Users, Fuel, Zap } from "lucide-react"
+import { Loader2, Users, Fuel, Zap, MapPin, Star } from "lucide-react"
 import type { Car } from "@/types"
 import { useStore } from "@/lib/store"
+
+interface Dealer {
+  name: string
+  address: string
+  rating: number
+}
 
 export default function CarDetailPage() {
   const router = useRouter()
@@ -16,6 +22,12 @@ export default function CarDetailPage() {
 
   const [car, setCar] = useState<Car | null>(selectedCar || null)
   const [loading, setLoading] = useState(!selectedCar)
+  const [findingDealers, setFindingDealers] = useState(false);
+const [dealers, setDealers] = useState<
+  { name: string; address: string; rating: number | null; place_id: string; location?: any; isOpen: boolean | null }[]
+>([]);
+const [dealerError, setDealerError] = useState<string | null>(null);
+
 
   useEffect(() => {
     if (selectedCar) {
@@ -64,6 +76,55 @@ export default function CarDetailPage() {
         </main>
       </div>
     )
+  }
+
+  async function handleFindDealers() {
+    setDealerError(null);
+    setDealers([]);
+    setFindingDealers(true);
+  
+    try {
+      // --- ADD THIS CHECK ---
+      if (!car) {
+        throw new Error("Car details are not available.");
+      }
+      // --------------------
+
+      // Get browser location
+      if (!navigator.geolocation) {
+        throw new Error("Geolocation is not supported by your browser");
+      }
+
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        });
+      });
+  
+      const { latitude: lat, longitude: lng } = pos.coords;
+  
+      // Call our API
+      const res = await fetch("/api/dealers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // --- UPDATE THIS LINE ---
+        body: JSON.stringify({ lat, lng, make: car.make }),
+        // ------------------------
+      });
+  
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to find dealers");
+      }
+      console.log("Dealer API response:", data);
+  
+      setDealers(data.dealers || []);
+    } catch (err: any) {
+      setDealerError(err?.message ?? "Failed to get location or dealers");
+    } finally {
+      setFindingDealers(false);
+    }
   }
 
   return (
@@ -163,8 +224,69 @@ export default function CarDetailPage() {
           >
             Find More Vehicles
           </Button>
+          <Button
+    onClick={handleFindDealers}
+    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+    disabled={findingDealers}
+  >
+    {findingDealers ? "Finding Dealers..." : "Find Nearby Dealers"}
+  </Button>
         </div>
       </main>
+      {/* Dealer Search Results */}
+{dealerError && (
+  <p className="text-sm text-red-500 mt-4">Error: {dealerError}</p>
+)}
+
+{dealers.length > 0 && (
+  <Card className="p-6 mt-6 border border-border">
+    <h2 className="text-2xl font-bold text-foreground mb-4">Nearby Toyota Dealers</h2>
+    <div className="space-y-3">
+      {dealers.map((d) => (
+        <div
+          key={d.place_id}
+          className="p-4 rounded-lg border border-border flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div>
+            <p className="font-semibold text-foreground flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-primary" />
+              {d.name}
+            </p>
+            <p className="text-sm text-muted-foreground">{d.address}</p>
+            {typeof d.rating === "number" && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Star className="w-4 h-4 text-yellow-500" />
+                {d.rating.toFixed(1)}
+              </p>
+            )}
+            {d.isOpen !== null && (
+              <p
+                className={`text-xs ${
+                  d.isOpen ? "text-green-600" : "text-yellow-600"
+                }`}
+              >
+                {d.isOpen ? "Open now" : "Closed now"}
+              </p>
+            )}
+          </div>
+
+          {/* Quick link to Google Maps */}
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              d.name + " " + d.address
+            )}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-3 md:mt-0 inline-flex items-center px-3 py-2 rounded-md border border-border text-sm hover:bg-muted"
+          >
+            Open in Maps
+          </a>
+        </div>
+      ))}
+    </div>
+  </Card>
+)}
+
     </div>
   )
 }

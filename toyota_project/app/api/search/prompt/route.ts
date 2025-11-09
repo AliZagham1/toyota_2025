@@ -14,55 +14,74 @@ import { getToyotaInventory } from "@/lib/toyota-api"
  */
 
 export async function POST(request: NextRequest) {
+  console.log("[API Route] ===== REQUEST RECEIVED =====")
+  console.log("[API Route] Timestamp:", new Date().toISOString())
+
   try {
-    const { description } = await request.json()
+    // Step 1: Parse request body
+    console.log("[API Route] Step 1: Parsing request body...")
+    const body = await request.json()
+    console.log("[API Route] Request body:", JSON.stringify(body, null, 2))
+
+    const { description } = body
 
     if (!description || description.trim().length === 0) {
+      console.error("[API Route] Error: Description is missing or empty")
       return NextResponse.json({ error: "Description is required" }, { status: 400 })
     }
 
-    // Check for Gemini API key
+    console.log("[API Route] ✓ Description received:", description.substring(0, 100) + "...")
+
+    // Step 2: Check for Gemini API key
+    console.log("[API Route] Step 2: Checking Gemini API key...")
     const geminiApiKey = process.env.GEMINI_API_KEY
     if (!geminiApiKey) {
-      console.error("[Prompt Search] GEMINI_API_KEY not found in environment variables")
+      console.error("[API Route] ✗ GEMINI_API_KEY not found in environment variables")
       return NextResponse.json(
         { error: "Gemini API key not configured. Please set GEMINI_API_KEY environment variable." },
         { status: 500 },
       )
     }
+    console.log("[API Route] ✓ Gemini API key found")
 
-    // Initialize Gemini AI
+    // Step 3: Initialize Gemini AI
+    console.log("[API Route] Step 3: Initializing Gemini AI...")
     const genAI = new GoogleGenerativeAI(geminiApiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    console.log("[API Route] ✓ Gemini AI initialized")
 
-    // Create prompt for Gemini to extract car search filters
+    // Step 4: Create prompt for Gemini
+    console.log("[API Route] Step 4: Creating extraction prompt...")
     const prompt = createExtractionPrompt(description)
-
-    console.log("[Prompt Search] ===== GEMINI PROMPT START =====")
+    console.log("[API Route] ✓ Prompt created")
+    console.log("[API Route] ===== GEMINI PROMPT START =====")
     console.log(prompt)
-    console.log("[Prompt Search] ===== GEMINI PROMPT END =====")
-    console.log("[Prompt Search] Calling Gemini API with description:", description.substring(0, 100))
+    console.log("[API Route] ===== GEMINI PROMPT END =====")
 
-    // Call Gemini API
+    // Step 5: Call Gemini API
+    console.log("[API Route] Step 5: Calling Gemini API...")
+    console.log("[API Route] Description preview:", description.substring(0, 100))
+
     const result = await model.generateContent(prompt)
     const response = await result.response
     const text = response.text()
 
-    // Log the full Gemini response for debugging
-    console.log("[Prompt Search] ===== GEMINI FULL RESPONSE START =====")
+    console.log("[API Route] ✓ Gemini API response received")
+    console.log("[API Route] ===== GEMINI FULL RESPONSE START =====")
     console.log(text)
-    console.log("[Prompt Search] ===== GEMINI FULL RESPONSE END =====")
+    console.log("[API Route] ===== GEMINI FULL RESPONSE END =====")
 
-    // Parse Gemini's JSON response
+    // Step 6: Parse Gemini's JSON response
+    console.log("[API Route] Step 6: Parsing Gemini response...")
     const filters = parseGeminiResponse(text)
-    
-    // Log parsed filters for debugging
-    console.log("[Prompt Search] Parsed filters:", JSON.stringify(filters, null, 2))
+    console.log("[API Route] ✓ Filters parsed successfully")
+    console.log("[API Route] Parsed filters:", JSON.stringify(filters, null, 2))
 
-    // Prepare filters for Toyota API - map directly to inventoryParameters format
+    // Step 7: Prepare filters for Toyota API
+    console.log("[API Route] Step 7: Preparing filters for Toyota API...")
     // Use extracted condition if provided, otherwise default to "both" to show all vehicles
     const condition = filters.condition || "both"
-    
+
     const toyotaBaseFilters = {
       priceRange: filters.priceRange,
       priceRanges: filters.priceRanges, // Multiple price ranges
@@ -85,8 +104,8 @@ export async function POST(request: NextRequest) {
       driveLine: filters.driveLine,
       vehicleStatus: filters.vehicleStatus,
     }
-    
-    console.log("[Prompt Search] Condition filter:", condition, filters.condition ? "(from Gemini)" : "(defaulting to both)")
+
+    console.log("[API Route] ✓ Condition filter:", condition, filters.condition ? "(from Gemini)" : "(defaulting to both)")
     
     // Decide models to query: prefer models[] if present. If generic + sedan, expand to multiple sedan models.
     const lowerDesc = description.toLowerCase()
@@ -126,9 +145,12 @@ export async function POST(request: NextRequest) {
       modelsToQuery = Array.from(new Set([...seed, ...candidateSedanModels])).slice(0, 5)
     }
 
-    console.log("[Prompt Search] Models to query:", modelsToQuery)
+    console.log("[API Route] ✓ Models to query:", modelsToQuery)
 
-    // Fetch cars for each model (in parallel), then combine
+    // Step 8: Fetch cars from Toyota API
+    console.log("[API Route] Step 8: Fetching cars from Toyota API...")
+    console.log("[API Route] Number of models to query:", modelsToQuery.length)
+
     const fetches = modelsToQuery.map((mdl) =>
       getToyotaInventory({
         ...toyotaBaseFilters,
@@ -137,9 +159,10 @@ export async function POST(request: NextRequest) {
     )
     const results = await Promise.all(fetches)
     const combined = results.flat()
-    console.log("[Prompt Search] Retrieved", combined.length, "vehicles from Toyota API (combined)")
+    console.log("[API Route] ✓ Retrieved", combined.length, "vehicles from Toyota API (combined)")
 
-    // Transform to Car format
+    // Step 9: Transform to Car format
+    console.log("[API Route] Step 9: Transforming vehicles to Car format...")
     const cars: Car[] = combined
       .map((vehicle) => ({
         id: vehicle.id,
@@ -164,26 +187,50 @@ export async function POST(request: NextRequest) {
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 
-    // Score cars by how well they match the extracted filters, then diversify and limit to 10
+    console.log("[API Route] ✓ Transformed", cars.length, "vehicles")
+
+    // Step 10: Score and diversify results
+    console.log("[API Route] Step 10: Scoring and diversifying results...")
     const scored = scoreAndSortCars(cars, filters)
     const diversified = diversifyByModel(scored, { maxPerModel: 3, limit: 10 })
+    console.log("[API Route] ✓ Final results:", diversified.length, "vehicles")
 
-    return NextResponse.json({
+    // Step 11: Return success response
+    console.log("[API Route] Step 11: Returning success response...")
+    const successResponse = {
       success: true,
       filters: filters,
       cars: diversified, // Top diversified 10
       totalResults: cars.length,
       message: `Found ${cars.length} vehicles matching your description`,
+    }
+
+    console.log("[API Route] ===== SUCCESS RESPONSE =====")
+    console.log("[API Route] Response summary:", {
+      success: true,
+      totalResults: cars.length,
+      returnedCars: diversified.length,
+      filtersApplied: Object.keys(filters).length,
     })
+    console.log("[API Route] ===== REQUEST COMPLETE =====")
+
+    return NextResponse.json(successResponse, { status: 200 })
   } catch (error) {
-    console.error("[Prompt Search Error]", error)
-    return NextResponse.json(
-      {
-        error: "Failed to process request",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 },
-    )
+    console.error("[API Route] ===== ERROR OCCURRED =====")
+    console.error("[API Route] Error type:", error instanceof Error ? error.constructor.name : typeof error)
+    console.error("[API Route] Error message:", error instanceof Error ? error.message : String(error))
+    console.error("[API Route] Error stack:", error instanceof Error ? error.stack : "No stack trace")
+    console.error("[API Route] Full error object:", error)
+
+    const errorResponse = {
+      error: error instanceof Error ? error.message : "Failed to process request",
+      details: error instanceof Error ? error.stack : String(error),
+    }
+
+    console.log("[API Route] Returning error response:", errorResponse)
+    console.log("[API Route] ===== REQUEST FAILED =====")
+
+    return NextResponse.json(errorResponse, { status: 500 })
   }
 }
 
