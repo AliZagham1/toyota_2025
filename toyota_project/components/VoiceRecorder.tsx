@@ -5,22 +5,6 @@ import { Mic, MicOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { WaveAnimation } from "./WaveAnimation"
 
-/**
- * VoiceRecorder Component
- *
- * Provides voice input functionality using the Web Speech API.
- * Features:
- * - Microphone button to start/stop recording
- * - Live wave animation while listening
- * - Automatic transcript capture
- * - Error handling for browser compatibility
- *
- * Props:
- * - onTranscript: (text: string) => void - Callback when speech is recognized
- * - onError: (error: string) => void - Callback for error handling
- * - disabled: boolean - Whether the recorder is disabled
- */
-
 interface VoiceRecorderProps {
   onTranscript: (text: string) => void
   onError?: (error: string) => void
@@ -35,10 +19,6 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
   // Reference to the speech recognition instance
   const recognitionRef = useRef<any>(null)
 
-  /**
-   * Initialize Web Speech API on component mount
-   * Check browser compatibility
-   */
   useEffect(() => {
     // Check if browser supports Web Speech API
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
@@ -111,10 +91,6 @@ export function VoiceRecorder({ onTranscript, onError, disabled = false }: Voice
       setIsListening(false)
     }
 
-    /**
-     * Event handler for recognition end
-     * Ensures UI state is updated when recognition stops
-     */
     recognition.onend = () => {
       setIsListening(false)
     }
