@@ -2,36 +2,20 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { VoiceRecorder } from "@/components/VoiceRecorder"
-import { Loader2, Keyboard, Mic, NotebookPen, ChevronLeft, Sparkles } from "lucide-react"
-
-const examplePrompts = [
-  "I want a sporty sedan that's fun to drive but also fuel efficient.",
-  "Looking for a budget-friendly pickup truck for work and weekend trips.",
-  "Need a luxury vehicle with all the latest tech and comfort features.",
-  "Eco-conscious shopper looking for a hybrid with low emissions.",
-  "I am looking for a 2023 Corolla.",
-  "Show me 2024 Camry options with good fuel economy.",
-  "I want to see 2023 RAV4 models in my area.",
-  "Looking for a 2024 Highlander with third-row seating.",
-  "Find me a 2023 Prius with low mileage.",
-  "I need a 2024 Tacoma for off-road adventures."
-]
+import { Loader2, Keyboard, Mic, NotebookPen, ChevronLeft } from "lucide-react"
 
 export default function PromptPage() {
   const router = useRouter()
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  // Voice input mode state - toggle between text and voice input
   const [isVoiceMode, setIsVoiceMode] = useState(false)
-  const [typedText, setTypedText] = useState("")
-  const [currentIndex, setCurrentIndex] = useState(0)
 
- 
+
   const processDescription = async (description: string) => {
     if (!description.trim()) return
 
@@ -39,7 +23,6 @@ export default function PromptPage() {
     setError("")
 
     try {
-      // Call Gemini API to generate car suggestions based on description
       const response = await fetch("/api/search/prompt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +40,6 @@ export default function PromptPage() {
         throw new Error(data.error || "Failed to process your request")
       }
 
-      // Store filters from Gemini response and navigate to results, also include original description
       router.push(
         `/results?filters=${encodeURIComponent(JSON.stringify(data.filters))}&desc=${encodeURIComponent(input)}`,
       )
@@ -70,49 +52,27 @@ export default function PromptPage() {
     }
   }
 
- 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     await processDescription(input)
   }
 
-  
   const handleVoiceTranscript = async (transcript: string) => {
     console.log("[PromptPage] Voice transcript received:", transcript)
-    // Automatically process the voice input
     await processDescription(transcript)
   }
 
-  
+
   const handleVoiceError = (errorMessage: string) => {
     setError(errorMessage)
   }
 
-  
+
   const toggleInputMode = () => {
     setIsVoiceMode(!isVoiceMode)
-    setError("") // Clear any errors when switching modes
+    setError("") 
   }
-
-  
-  useEffect(() => {
-    const currentPrompt = examplePrompts[currentIndex]
-    let timeoutId: NodeJS.Timeout
-
-    if (typedText.length < currentPrompt.length) {
-      timeoutId = setTimeout(() => {
-        setTypedText(currentPrompt.slice(0, typedText.length + 1))
-      }, 50)
-    } else {
-      // Wait before moving to next prompt
-      timeoutId = setTimeout(() => {
-        setTypedText("")
-        setCurrentIndex((prev) => (prev + 1) % examplePrompts.length)
-      }, 3000)
-    }
-
-    return () => clearTimeout(timeoutId)
-  }, [typedText, currentIndex])
 
   return (
     <div className="min-h-screen bg-white">
@@ -254,18 +214,11 @@ export default function PromptPage() {
 
         <section className="space-y-3 text-sm text-muted-foreground">
           <h3 className="text-sm font-semibold text-foreground">Example prompts</h3>
-          <div className="flex items-start gap-3 pt-2">
-            <div className="mt-0.5">
-              <Sparkles className="w-4 h-4 text-[#D32F2F] animate-pulse" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm text-foreground min-h-[1.5em]">
-                &quot;{typedText}
-                <span className="inline-block w-0.5 h-4 bg-[#D32F2F] ml-1 animate-pulse align-middle"></span>
-                &quot;
-              </p>
-            </div>
-          </div>
+          <ul className="space-y-1 list-disc pl-5">
+            <li>"I want a sporty sedan that's fun to drive but also fuel efficient."</li>
+            <li>"Need a luxury vehicle with all the latest tech and comfort features."</li>
+            <li>"Eco-conscious shopper looking for a hybrid with low emissions."</li>
+          </ul>
         </section>
       </main>
     </div>
