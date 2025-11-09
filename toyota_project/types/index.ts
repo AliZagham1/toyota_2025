@@ -1,6 +1,7 @@
 export interface CarFilters {
   make?: string
   model?: string
+  trim?: string
   priceRange?: {
     min: number
     max: number

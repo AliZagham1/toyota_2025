@@ -1,35 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server"
 import type { CarFilters, Car } from "@/types"
-import { getToyotaInventory, filterVehicles } from "@/lib/toyota-api"
+import { getToyotaInventory } from "@/lib/toyota-api"
 
 /**
  * API Route: POST /api/search/cars
  *
  * Accepts filter criteria and returns matching Toyota vehicles from the Plano dealership.
- * Integrates with Toyota of Plano API for real-time inventory data.
+ * Integrates with Toyota of Plano API for real-time inventory data with server-side filtering.
  */
 
 export async function POST(request: NextRequest) {
   try {
     const filters: CarFilters = await request.json()
 
-    console.log("[v0] Searching cars with filters:", filters)
+    console.log("[Cars Search] Searching cars with filters:", filters)
 
-    const toyotaVehicles = await getToyotaInventory()
-    console.log("[v0] Retrieved", toyotaVehicles.length, "vehicles from Toyota API")
-
-    // Filter vehicles based on criteria
-    const filtered = filterVehicles(toyotaVehicles, {
+    // Prepare filters for Toyota API (server-side filtering) - map directly to inventoryParameters format
+    const toyotaFilters = {
       priceRange: filters.priceRange,
-      yearRange: filters.year ? { min: filters.year, max: 2025 } : undefined,
+      year: filters.year, // Pass year directly as single value (will be converted to string)
+      yearRange: filters.year ? undefined : undefined, // Only use if year not provided
       model: filters.model,
+      trim: filters.trim,
       fuelType: filters.fuelType,
-      bodyStyle: filters.model, // Assuming model filter might be body style
+      bodyStyle: filters.model, // Model filter might be body style
       color: filters.color,
-      condition: filters.condition,
-    })
+      condition: filters.condition || "new", // Default to new if not specified
+    }
 
-    console.log("[v0] Filtered to", filtered.length, "vehicles")
+    // Fetch cars from Toyota API with filters applied server-side
+    const filtered = await getToyotaInventory(toyotaFilters)
+    console.log("[Cars Search] Retrieved", filtered.length, "vehicles from Toyota API")
 
     // Transform to Car format for the app
     const cars: Car[] = filtered.map((vehicle) => ({
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
       name: `${vehicle.year} Toyota ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
       model: vehicle.model,
       make: vehicle.make,
-      price: vehicle.internetPrice || vehicle.askingPrice,
+      price: vehicle.internetPrice || vehicle.askingPrice || 0,
       year: vehicle.year,
       mileage: vehicle.mileage,
       color: vehicle.exteriorColor,

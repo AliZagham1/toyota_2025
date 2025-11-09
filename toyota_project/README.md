@@ -55,7 +55,7 @@ types/
 Create a `.env.local` file with the following (replace with your actual keys):
 
 \`\`\`
-# Optional: Gemini API for AI search
+# Required: Gemini API for AI-powered prompt search
 GEMINI_API_KEY=your_gemini_key_here
 
 # Optional: Cars API for real-time data
@@ -65,24 +65,22 @@ CARS_API_KEY=your_cars_api_key_here
 TOYOTA_API_KEY=your_toyota_key_here
 \`\`\`
 
+**Note**: The Gemini API key is required for the prompt-based search feature. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+
 ### 2. Install Dependencies
 
 The project uses Next.js runtime, so dependencies are auto-detected from imports. No manual npm install needed in v0.
 
-### 3. Integration Points (Placeholders)
+### 3. Integration Status
 
-The following require implementation:
+#### `/api/search/prompt` - Gemini Integration ✅ **COMPLETE**
+The Gemini API integration is fully implemented:
+- Uses Google's Generative AI SDK (`@google/generative-ai`)
+- Extracts car search filters from natural language descriptions
+- Automatically fetches matching vehicles from Toyota API
+- Returns structured filter criteria and car results
 
-#### `/api/search/prompt` - Gemini Integration
-Replace the mock `generateMockFilters()` function with actual Gemini API calls:
-\`\`\`typescript
-// Example using Google's Generative AI
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-const response = await model.generateContent(prompt);
-\`\`\`
+The implementation uses `gemini-1.5-flash` model for fast response times.
 
 #### `/api/search/cars` - Car Data Integration
 Options for real car data:

@@ -139,7 +139,7 @@ export default function ResultsPage() {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center gap-2 text-sm text-foreground">
                         <DollarSign className="w-4 h-4 text-primary" />
-                        <span className="font-semibold">${car.price.toLocaleString()}</span>
+                        <span className="font-semibold">${(car.price || 0).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-foreground">
                         <Gauge className="w-4 h-4 text-primary" />

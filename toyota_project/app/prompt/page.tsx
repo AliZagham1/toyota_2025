@@ -29,13 +29,22 @@ export default function PromptPage() {
         body: JSON.stringify({ description: input }),
       })
 
-      if (!response.ok) throw new Error("Failed to search")
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to search")
+      }
 
       const data = await response.json()
+      
+      if (!data.success) {
+        throw new Error(data.error || "Failed to process your request")
+      }
+
       // Store filters from Gemini response and navigate to results
       router.push(`/results?filters=${encodeURIComponent(JSON.stringify(data.filters))}`)
     } catch (err) {
-      setError("Failed to process your request. Please try again.")
+      const errorMessage = err instanceof Error ? err.message : "Failed to process your request. Please try again."
+      setError(errorMessage)
       console.error(err)
     } finally {
       setLoading(false)
