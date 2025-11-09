@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { WaveAnimation } from "@/components/WaveAnimation"
 import { Mic, MicOff, Loader2 } from "lucide-react"
