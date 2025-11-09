@@ -63,15 +63,14 @@ export async function POST(request: NextRequest) {
     // Use extracted condition if provided, otherwise default to "both" to show all vehicles
     const condition = filters.condition || "both"
     
-    const toyotaFilters = {
+    const toyotaBaseFilters = {
       priceRange: filters.priceRange,
       priceRanges: filters.priceRanges, // Multiple price ranges
       year: filters.year, // Pass year directly as single value (will be converted to string)
       yearRange: filters.year ? undefined : undefined, // Only use if year not provided
-      model: filters.model,
       trim: filters.trim,
       fuelType: filters.fuelType,
-      bodyStyle: filters.bodyStyle || filters.model, // Use extracted bodyStyle or model as fallback
+      bodyStyle: filters.bodyStyle,
       color: filters.color,
       mileage: filters.mileage, // Mileage filter for odometer
       condition: condition as "new" | "used" | "both",
@@ -89,15 +88,59 @@ export async function POST(request: NextRequest) {
     
     console.log("[Prompt Search] Condition filter:", condition, filters.condition ? "(from Gemini)" : "(defaulting to both)")
     
-    console.log("[Prompt Search] Final toyotaFilters:", JSON.stringify(toyotaFilters, null, 2))
+    // Decide models to query: prefer models[] if present. If generic + sedan, expand to multiple sedan models.
+    const lowerDesc = description.toLowerCase()
+    const explicitModels = [
+      "camry",
+      "corolla",
+      "prius",
+      "crown",
+      "rav4",
+      "highlander",
+      "4runner",
+      "sequoia",
+      "venza",
+      "tacoma",
+      "tundra",
+      "sienna",
+      "bz4x",
+      "supra",
+      "gr86",
+    ]
+    const userMentionedSpecificModel = explicitModels.some((m) => lowerDesc.includes(m))
 
-    // Fetch cars from Toyota API using extracted filters (server-side filtering)
-    console.log("[Prompt Search] Fetching cars with filters:", toyotaFilters)
-    const filtered = await getToyotaInventory(toyotaFilters)
-    console.log("[Prompt Search] Retrieved", filtered.length, "vehicles from Toyota API")
+    const candidateSedanModels = ["Camry", "Corolla", "Prius", "Crown"]
+
+    let modelsToQuery =
+      (filters.models && filters.models.length > 0 && filters.models.slice(0, 5)) ||
+      (filters.model ? [filters.model] : [null])
+
+    // If the user did not specify a model and asked for a sedan (often generic sporty/efficient),
+    // expand to several sedan models to diversify results.
+    if (
+      !userMentionedSpecificModel &&
+      (((filters.bodyStyle || "").toLowerCase() === "sedan") || lowerDesc.includes("sedan")) &&
+      modelsToQuery.filter(Boolean).length <= 1
+    ) {
+      const seed = modelsToQuery[0] ? [modelsToQuery[0] as string] : []
+      modelsToQuery = Array.from(new Set([...seed, ...candidateSedanModels])).slice(0, 5)
+    }
+
+    console.log("[Prompt Search] Models to query:", modelsToQuery)
+
+    // Fetch cars for each model (in parallel), then combine
+    const fetches = modelsToQuery.map((mdl) =>
+      getToyotaInventory({
+        ...toyotaBaseFilters,
+        model: mdl || undefined,
+      }),
+    )
+    const results = await Promise.all(fetches)
+    const combined = results.flat()
+    console.log("[Prompt Search] Retrieved", combined.length, "vehicles from Toyota API (combined)")
 
     // Transform to Car format
-    const cars: Car[] = filtered
+    const cars: Car[] = combined
       .map((vehicle) => ({
         id: vehicle.id,
         name: `${vehicle.year} Toyota ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
@@ -121,10 +164,14 @@ export async function POST(request: NextRequest) {
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 
+    // Score cars by how well they match the extracted filters, then diversify and limit to 10
+    const scored = scoreAndSortCars(cars, filters)
+    const diversified = diversifyByModel(scored, { maxPerModel: 3, limit: 10 })
+
     return NextResponse.json({
       success: true,
       filters: filters,
-      cars: cars.slice(0, 50), // Limit to 50 results
+      cars: diversified, // Top diversified 10
       totalResults: cars.length,
       message: `Found ${cars.length} vehicles matching your description`,
     })
@@ -174,6 +221,7 @@ Return ONLY a valid JSON object with the following structure (use null for missi
 
 IMPORTANT - MODEL RECOMMENDATION GUIDELINES:
 When the user describes what they want (e.g., "sporty sedan", "family SUV", "fuel efficient car"), you MUST recommend specific Toyota models that match their description. Use the "model" field for a single model, or "models" array for multiple matching models.
+If the user does not name a specific model and the description is generic, ALWAYS provide a "models" array with 3-5 diverse options that match the body style and attributes. Also include "bodyStyle" when the user mentions sedan/SUV/truck/minivan.
 
 Toyota Model Guide:
 - SEDANS:
@@ -205,7 +253,7 @@ Toyota Model Guide:
   * Sports Car: GR86, Supra
 
 Examples:
-- "sporty sedan that's fun to drive but fuel efficient" → models: ["Camry", "Corolla"], condition: null (show both)
+- "sporty sedan that's fun to drive but fuel efficient" → bodyStyle: "sedan", models: ["Camry", "Corolla", "Prius", "Crown"], condition: null (show both)
 - "I want a brand new 2025 Camry" → model: "Camry", year: 2025, condition: "new"
 - "Looking for a used RAV4 under $30,000" → model: "RAV4", priceRange: {min: 0, max: 30000}, condition: "used"
 - "Pre-owned Highlander with low mileage" → model: "Highlander", condition: "used", mileage: {min: 0, max: 50000}
@@ -402,13 +450,19 @@ function parseGeminiResponse(response: string): CarFilters {
       filters.fuelType = parsed.fuelType
     }
 
-    // Handle models - prefer models array, fallback to single model
+  // Handle models - prefer models array, fallback to single model
     if (parsed.models && Array.isArray(parsed.models) && parsed.models.length > 0) {
-      // Use first model for single model filter (Toyota API typically takes one model at a time)
-      // But we can make multiple API calls or combine them
-      filters.model = parsed.models[0].trim()
-      console.log("[Parse] Extracted models array:", parsed.models)
-      console.log("[Parse] Using first model:", filters.model)
+      const cleaned = parsed.models
+        .filter((m: any) => typeof m === "string")
+        .map((m: string) => m.trim())
+        .filter((m: string) => m.length > 0)
+      if (cleaned.length > 0) {
+        filters.models = cleaned
+        // Also set the first model for compatibility with single-model flows
+        filters.model = cleaned[0]
+        console.log("[Parse] Extracted models array:", cleaned)
+        console.log("[Parse] Using first model:", filters.model)
+      }
     } else if (parsed.model && typeof parsed.model === "string") {
       filters.model = parsed.model.trim()
       console.log("[Parse] Extracted single model:", filters.model)
@@ -542,4 +596,155 @@ function calculateEcoRating(fuelType: string, cityMpg: number, highwayMpg: numbe
   else if (avgMpg < 15) baseRating -= 1
 
   return Math.min(Math.max(baseRating, 1), 10)
+}
+
+/**
+ * Compute a relevance score for a car given user filters and return cars sorted by score desc.
+ */
+function scoreAndSortCars(cars: Car[], filters: CarFilters): Car[] {
+  const hasPriceRanges = Array.isArray(filters.priceRanges) && filters.priceRanges.length > 0
+  const models = (filters.models || (filters.model ? [filters.model] : []) || []).map((m) => (m || "").toLowerCase())
+  const preferFirstModel = models.length > 0 ? models[0] : undefined
+
+  const scored = cars.map((car) => {
+    let score = 0
+
+    // Model preference
+    if (models.length > 0) {
+      const cm = (car.model || "").toLowerCase()
+      if (cm === preferFirstModel) score += 6
+      if (models.includes(cm)) score += 4
+    }
+
+    // Condition match
+    if (filters.condition) {
+      const isNew = car.isNew
+      if ((filters.condition === "new" && isNew) || (filters.condition === "used" && !isNew)) {
+        score += 3
+      }
+    }
+
+    // Fuel type match
+    if (filters.fuelType && car.fuelType) {
+      if (car.fuelType.toLowerCase() === filters.fuelType.toLowerCase()) score += 3
+    }
+
+    // Year match
+    if (typeof filters.year === "number") {
+      if (car.year === filters.year) score += 2
+      // Slightly reward being within +/-1 year if exact not available
+      if (Math.abs(car.year - filters.year) === 1) score += 1
+    }
+
+    // MPG requirements
+    if (typeof filters.overallMpg === "number") {
+      const delta = (car.mpg || 0) - filters.overallMpg
+      if (delta >= 0) score += Math.min(4, 1 + Math.floor(delta / 5)) // reward exceeding target
+    } else {
+      // If "sporty and efficient" often implies decent mpg, value higher mpg a bit
+      if (car.mpg >= 35) score += 2
+      else if (car.mpg >= 30) score += 1
+    }
+
+    // Mileage preference
+    if (filters.mileage) {
+      const within =
+        car.mileage >= Math.max(0, filters.mileage.min) && car.mileage <= Math.max(filters.mileage.max, 0)
+      if (within) {
+        score += 2
+        // Prefer lower mileage within the range
+        if (car.mileage <= filters.mileage.min + (filters.mileage.max - filters.mileage.min) * 0.25) score += 1
+      }
+    } else {
+      // If no mileage specified, prefer new or lower mileage slightly
+      if (car.isNew) score += 1
+      else if (car.mileage <= 30000) score += 1
+    }
+
+    // Price closeness to user's range(s)
+    const price = car.price || 0
+    if (hasPriceRanges) {
+      let best = 0
+      for (const r of filters.priceRanges!) {
+        const min = Math.max(0, r.min)
+        const max = Math.max(min, r.max)
+        if (price >= min && price <= max) {
+          // Reward being inside range, closer to lower end usually more "affordable"
+          const span = Math.max(1, max - min)
+          const rel = (max - price) / span // closer to lower → higher rel
+          best = Math.max(best, 3 + Math.floor(rel * 3)) // up to +6
+        } else {
+          // Penalize distance outside the range lightly
+          const d = price < min ? min - price : price - max
+          best = Math.max(best, Math.max(0, 2 - Math.floor(d / 5000)))
+        }
+      }
+      score += best
+    } else if (filters.priceRange) {
+      const min = Math.max(0, filters.priceRange.min)
+      const max = Math.max(min, filters.priceRange.max)
+      if (price >= min && price <= max) {
+        const span = Math.max(1, max - min)
+        const rel = (max - price) / span
+        score += 5 + Math.floor(rel * 3) // up to +8
+      } else {
+        const d = price < min ? min - price : price - max
+        score += Math.max(0, 2 - Math.floor(d / 5000))
+      }
+    }
+
+    return { car, score }
+  })
+
+  scored.sort((a, b) => b.score - a.score || (a.car.price || 0) - (b.car.price || 0))
+  return scored.map((s) => s.car)
+}
+
+/**
+ * Diversify a list of cars by interleaving different models.
+ * - Groups cars by model (case-insensitive)
+ * - Preserves incoming order within each group (so pre-sorted lists keep priority)
+ * - Round-robins across groups up to limit, capping per model
+ */
+function diversifyByModel(
+  cars: Car[],
+  opts: { maxPerModel: number; limit: number } = { maxPerModel: 5, limit: 50 },
+): Car[] {
+  const { maxPerModel, limit } = opts
+  const buckets = new Map<string, Car[]>()
+  for (const car of cars) {
+    const key = (car.model || "").toLowerCase()
+    if (!buckets.has(key)) buckets.set(key, [])
+    buckets.get(key)!.push(car)
+  }
+  // Do not sort buckets: preserve original ranking within each model
+  // Track how many taken per model
+  const taken = new Map<string, number>()
+  const keys = Array.from(buckets.keys())
+  const result: Car[] = []
+  let added = true
+  while (result.length < limit && added) {
+    added = false
+    for (const key of keys) {
+      if (result.length >= limit) break
+      const used = taken.get(key) || 0
+      if (used >= maxPerModel) continue
+      const bucket = buckets.get(key)!
+      if (bucket.length === 0) continue
+      const next = bucket.shift()!
+      result.push(next)
+      taken.set(key, used + 1)
+      added = true
+    }
+  }
+  // If still under limit (e.g., very few models), fill with remaining cheapest
+  if (result.length < limit) {
+    const remaining = Array.from(buckets.values()).flat()
+    // Preserve original order for remaining as well
+    for (const car of remaining) {
+      if (result.length >= limit) break
+      result.push(car)
+    }
+  }
+  return result
 }

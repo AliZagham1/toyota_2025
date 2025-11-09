@@ -51,10 +51,6 @@ export default function ComparisonPage() {
                       <span className="font-semibold text-primary">${car.price.toLocaleString()}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">MPG</span>
-                      <span className="font-semibold">{car.mpg}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Fuel Type</span>
                       <span className="font-semibold capitalize">{car.fuelType}</span>
                     </div>
@@ -110,14 +106,6 @@ export default function ComparisonPage() {
                   {comparedCars.map((car) => (
                     <td key={car.id} className="py-3 px-4 text-center text-foreground">
                       {car.year}
-                    </td>
-                  ))}
-                </tr>
-                <tr className="border-b border-border hover:bg-muted/50">
-                  <td className="py-3 pr-4 font-medium text-foreground">MPG</td>
-                  {comparedCars.map((car) => (
-                    <td key={car.id} className="py-3 px-4 text-center text-foreground">
-                      {car.mpg} MPG
                     </td>
                   ))}
                 </tr>

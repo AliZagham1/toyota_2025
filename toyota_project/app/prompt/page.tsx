@@ -40,8 +40,10 @@ export default function PromptPage() {
         throw new Error(data.error || "Failed to process your request")
       }
 
-      // Store filters from Gemini response and navigate to results
-      router.push(`/results?filters=${encodeURIComponent(JSON.stringify(data.filters))}`)
+      // Store filters from Gemini response and navigate to results, also include original description
+      router.push(
+        `/results?filters=${encodeURIComponent(JSON.stringify(data.filters))}&desc=${encodeURIComponent(input)}`,
+      )
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to process your request. Please try again."
       setError(errorMessage)

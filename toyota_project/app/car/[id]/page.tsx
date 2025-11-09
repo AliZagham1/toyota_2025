@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, Users, Fuel, Gauge, Zap } from "lucide-react"
+import { Loader2, Users, Fuel, Zap } from "lucide-react"
 import type { Car } from "@/types"
 import { useStore } from "@/lib/store"
 
@@ -91,14 +91,6 @@ export default function CarDetailPage() {
                 <div className="flex items-center gap-2">
                   <Fuel className="w-5 h-5 text-primary" />
                   <p className="font-semibold text-foreground capitalize">{car.fuelType}</p>
-                </div>
-              </Card>
-
-              <Card className="p-4 border border-border">
-                <p className="text-xs text-muted-foreground mb-2">MPG</p>
-                <div className="flex items-center gap-2">
-                  <Gauge className="w-5 h-5 text-primary" />
-                  <p className="font-semibold text-foreground">{car.mpg} MPG</p>
                 </div>
               </Card>
 
