@@ -30,6 +30,8 @@ export async function POST(request: NextRequest) {
       engine: filters.engine,
       driveLine: filters.driveLine,
       vehicleStatus: filters.vehicleStatus,
+      dealership: filters.dealership as any,
+      dealerships: (filters.dealerships as any) || undefined,
     }
 
     // Decide models to query: prefer models[] if present, else single model, else no model filter
@@ -94,6 +96,12 @@ export async function POST(request: NextRequest) {
         },
         ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
         isNew: vehicle.isNew,
+        dealer:
+          (vehicle as any).dealer === "plano"
+            ? "Toyota of Plano"
+            : (vehicle as any).dealer === "dallas"
+              ? "Toyota of Dallas"
+              : undefined,
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 

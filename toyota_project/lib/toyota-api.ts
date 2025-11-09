@@ -20,30 +20,57 @@ export interface ToyotaVehicle {
   stockNumber?: string
   isNew: boolean
   seats?: number
+  dealer?: string
 }
 
-/**
- * Fetches inventory from Toyota of Plano API
- * @param filters Optional filters to apply to the search
- */
+type DealerKey = "plano" | "dallas"
+type DealerConfig = {
+  key: DealerKey
+  siteId: string
+  domain: string // e.g., https://www.toyotaofplano.com
+  pageIdNew: string
+  pageIdUsed: string
+  refererNew: string
+  refererUsed: string
+}
+
+const DEALERS: Record<DealerKey, DealerConfig> = {
+  plano: {
+    key: "plano",
+    siteId: "toyotaofplanogst",
+    domain: "https://www.toyotaofplano.com",
+    pageIdNew: "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1",
+    pageIdUsed: "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1",
+    refererNew: "https://www.toyotaofplano.com/new-inventory/index.htm",
+    refererUsed: "https://www.toyotaofplano.com/used-inventory/index.htm",
+  },
+  dallas: {
+    key: "dallas",
+    siteId: "toyotadallasvtg",
+    domain: "https://www.toyotaofdallas.com",
+    pageIdNew: "toyotadallasvtg_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1",
+    pageIdUsed: "toyotadallasvtg_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1",
+    refererNew: "https://www.toyotaofdallas.com/new-inventory/index.htm",
+    refererUsed: "https://www.toyotaofdallas.com/used-inventory/index.htm",
+  },
+}
 /**
  * Helper function to build payload for a specific condition (new or used)
  */
 function buildToyotaPayload(
   inventoryParameters: any,
-  condition: "new" | "used"
+  condition: "new" | "used",
+  dealer: DealerConfig,
 ): any {
   const isNew = condition === "new"
   const pageAlias = isNew
     ? "INVENTORY_LISTING_DEFAULT_AUTO_NEW"
     : "INVENTORY_LISTING_DEFAULT_AUTO_USED"
-  const pageId = isNew
-    ? "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_NEW_V1_1"
-    : "toyotaofplanogst_SITEBUILDER_INVENTORY_SEARCH_RESULTS_AUTO_USED_V1_1"
+  const pageId = isNew ? dealer.pageIdNew : dealer.pageIdUsed
   const listingConfigId = isNew ? "auto-new" : "auto-used"
 
   return {
-    siteId: "toyotaofplanogst",
+    siteId: dealer.siteId,
     locale: "en_US",
     device: "DESKTOP",
     pageAlias: pageAlias,
@@ -79,7 +106,7 @@ function buildToyotaPayload(
       violateUsedCompliance: "false",
       showOffSiteInventoryBanner: isNew ? "true" : "false",
       showPhotosViewer: "true",
-      offsetSharedVehicleImageByOne: "false",
+      offsetSharedVehicleImageByOne: dealer.key === "dallas" ? "true" : "false",
       certifiedLogoColor: "",
       certifiedDefaultPath: "",
       certifiedDefaultLogoOnly: "false",
@@ -141,7 +168,7 @@ function buildToyotaPayload(
 }
 
 /**
- * Fetches inventory from Toyota of Plano API
+ * Fetches inventory from Toyota of plano API
  * @param filters Optional filters to apply to the search
  */
 export async function getToyotaInventory(filters?: {
@@ -166,6 +193,8 @@ export async function getToyotaInventory(filters?: {
   engine?: string
   driveLine?: string
   vehicleStatus?: "In Stock" | "In Transit" | "Build Phase"
+  dealership?: DealerKey
+  dealerships?: DealerKey[]
 }): Promise<ToyotaVehicle[]> {
   try {
     // Build inventoryParameters from filters - map directly to Toyota API format
@@ -306,50 +335,88 @@ export async function getToyotaInventory(filters?: {
     console.log("[Toyota API] inventoryParameters:", JSON.stringify(inventoryParameters, null, 2))
     console.log("[Toyota API] Fetching conditions:", conditionsToFetch)
 
-    // Fetch from all specified conditions in parallel
-    const fetchPromises = conditionsToFetch.map(async (condition) => {
-      const payload = buildToyotaPayload(inventoryParameters, condition)
-      const referer = condition === "new"
-        ? "https://www.toyotaofplano.com/new-inventory/index.htm"
-        : "https://www.toyotaofplano.com/used-inventory/index.htm"
-
-      console.log(`[Toyota API] Fetching ${condition} vehicles...`)
-
-      const response = await fetch("https://www.toyotaofplano.com/api/widget/ws-inv-data/getInventory", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "Accept-Language": "en-US,en;q=0.9",
-          Origin: "https://www.toyotaofplano.com",
-          Referer: referer,
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      if (!response.ok) {
-        console.error(`[Toyota API] ${condition} response error:`, response.status, response.statusText)
-        const errorText = await response.text().catch(() => "")
-        console.error(`[Toyota API] ${condition} error details:`, errorText)
-        // Don't throw, just return empty array for this condition
-        return []
+    // Determine dealers to fetch
+    let dealersToFetch: DealerKey[] = []
+    if (filters?.dealerships && filters.dealerships.length > 0) {
+      dealersToFetch = filters.dealerships.filter((d): d is DealerKey => d === "plano" || d === "dallas")
+    } else if (filters?.dealership) {
+      if (filters.dealership === "plano" || filters.dealership === "dallas") {
+        dealersToFetch = [filters.dealership]
       }
+    }
+    // Default to both if none specified
+    if (dealersToFetch.length === 0) {
+      dealersToFetch = ["plano", "dallas"]
+    }
+    console.log("[Toyota API] Dealers to fetch:", dealersToFetch.join(", "))
 
-      const data = await response.json()
-      console.log(`[Toyota API] ${condition} vehicles fetched:`, data?.inventory?.length || 0)
+    // Fetch from all specified dealers and conditions in parallel
+    const fetchPromises = dealersToFetch.flatMap((dealerKey) =>
+      conditionsToFetch.map(async (condition) => {
+        const dealer = DEALERS[dealerKey]
+        const payload = buildToyotaPayload(inventoryParameters, condition, dealer)
+        const referer = condition === "new" ? dealer.refererNew : dealer.refererUsed
 
-      // Transform the API response to our vehicle format
-      return transformToyotaResponse(data)
-    })
+        console.log(`[Toyota API] Fetching ${condition} vehicles from ${dealer.domain} ...`)
+
+        const response = await fetch(`${dealer.domain}/api/widget/ws-inv-data/getInventory`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "Accept-Language": "en-US,en;q=0.9",
+            Origin: dealer.domain,
+            Referer: referer,
+            "User-Agent":
+              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36",
+          },
+          body: JSON.stringify(payload),
+        })
+
+        if (!response.ok) {
+          console.error(`[Toyota API] ${dealerKey}/${condition} response error:`, response.status, response.statusText)
+          const errorText = await response.text().catch(() => "")
+          console.error(`[Toyota API] ${dealerKey}/${condition} error details:`, errorText)
+          // Don't throw, just return empty array for this condition
+          return []
+        }
+
+        const data = await response.json()
+        console.log(
+          `[Toyota API] ${dealerKey}/${condition} vehicles fetched:`,
+          data?.inventory?.length || data?.results?.length || 0,
+        )
+
+        // Transform the API response to our vehicle format
+        return transformToyotaResponse(data, dealer.domain, dealer.key)
+      }),
+    )
 
     // Wait for all fetches to complete
     const results = await Promise.all(fetchPromises)
     
     // Combine all vehicles from different conditions
     let allVehicles = results.flat()
-    console.log(`[Toyota API] Total vehicles fetched before filtering: ${allVehicles.length} (${conditionsToFetch.join(" + ")})`)
+    console.log(
+      `[Toyota API] Total vehicles fetched before filtering: ${allVehicles.length} (${dealersToFetch.join(
+        " + ",
+      )} x ${conditionsToFetch.join(" + ")})`,
+    )
+
+    // Enforce dealership filter as a safety net (in case of future changes)
+    if (filters?.dealership || (filters?.dealerships && filters.dealerships.length > 0)) {
+      const allowed = new Set<string>(
+        (filters.dealerships as string[]) ||
+          (filters.dealership ? [filters.dealership as string] : []),
+      )
+      const before = allVehicles.length
+      allVehicles = allVehicles.filter((v: ToyotaVehicle & { dealer?: string }) =>
+        v.dealer ? allowed.has(v.dealer) : true,
+      )
+      console.log(
+        `[Toyota API] Dealer filter applied: ${allVehicles.length} remain (removed ${before - allVehicles.length})`,
+      )
+    }
 
     // Apply client-side mileage filter if provided (as fallback since API may not respect it)
     if (filters?.mileage) {
@@ -429,7 +496,7 @@ export async function getToyotaInventory(filters?: {
 /**
  * Transforms Toyota API response into our vehicle format
  */
-function transformToyotaResponse(data: any): ToyotaVehicle[] {
+function transformToyotaResponse(data: any, baseDomain: string, dealerKey: DealerKey): ToyotaVehicle[] {
   // Log the data structure to understand what we're receiving
   console.log("[Transform] Data structure check:")
   console.log("  - data exists:", !!data)
@@ -520,8 +587,8 @@ function transformToyotaResponse(data: any): ToyotaVehicle[] {
         // If it's a relative URL, prepend the domain
         if (!imageUrl.startsWith('http')) {
           imageUrl = imageUrl.startsWith('/') 
-            ? `https://www.toyotaofplano.com${imageUrl}`
-            : `https://www.toyotaofplano.com/${imageUrl}`
+            ? `${baseDomain}${imageUrl}`
+            : `${baseDomain}/${imageUrl}`
         }
         // URLs from pictures.dealer.com are already full URLs, no need to modify
       }
@@ -632,6 +699,7 @@ function transformToyotaResponse(data: any): ToyotaVehicle[] {
         stockNumber: result.stockNumber,
         isNew: result.type === "new" || result.condition === "new" || mileage < 100,
         seats: Number(result.seats) || 5,
+        dealer: dealerKey,
       }
     })
     .filter((v: ToyotaVehicle) => v.year > 2010 && v.model !== "Unknown") // Filter out invalid vehicles

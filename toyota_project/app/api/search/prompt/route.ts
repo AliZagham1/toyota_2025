@@ -59,6 +59,18 @@ export async function POST(request: NextRequest) {
     // Log parsed filters for debugging
     console.log("[Prompt Search] Parsed filters:", JSON.stringify(filters, null, 2))
 
+    // Heuristic: detect dealership from raw description if Gemini did not set it
+    const descLower = description.toLowerCase()
+    if (!(filters as any).dealership && !(filters as any).dealerships) {
+      if (descLower.includes("dallas")) {
+        ;(filters as any).dealership = "dallas"
+        console.log("[Prompt Search] Heuristic set dealership to dallas based on description")
+      } else if (descLower.includes("plano")) {
+        ;(filters as any).dealership = "plano"
+        console.log("[Prompt Search] Heuristic set dealership to plano based on description")
+      }
+    }
+
     // Prepare filters for Toyota API - map directly to inventoryParameters format
     // Use extracted condition if provided, otherwise default to "both" to show all vehicles
     const condition = filters.condition || "both"
@@ -84,6 +96,9 @@ export async function POST(request: NextRequest) {
       engine: filters.engine,
       driveLine: filters.driveLine,
       vehicleStatus: filters.vehicleStatus,
+      // Pass-through for dealer selection (if provided via query in the future)
+      dealership: (filters as any).dealership,
+      dealerships: (filters as any).dealerships,
     }
     
     console.log("[Prompt Search] Condition filter:", condition, filters.condition ? "(from Gemini)" : "(defaulting to both)")
@@ -161,6 +176,12 @@ export async function POST(request: NextRequest) {
         },
         ecoRating: calculateEcoRating(vehicle.fuelType, vehicle.cityMpg, vehicle.highwayMpg),
         isNew: vehicle.isNew,
+        dealer:
+          (vehicle as any).dealer === "plano"
+            ? "Toyota of Plano"
+            : (vehicle as any).dealer === "dallas"
+              ? "Toyota of Dallas"
+              : undefined,
       }))
       .filter((car) => car.price > 0) // Filter out cars with $0 price
 
@@ -196,6 +217,8 @@ function createExtractionPrompt(description: string): string {
 Return ONLY a valid JSON object with the following structure (use null for missing values):
 
 {
+  "dealership": "plano" | "dallas" | null,
+  "dealerships": ["plano" | "dallas"] | null,
   "priceRange": { "min": number, "max": number } | null,
   "priceRanges": [{ "min": number, "max": number }] | null,
   "year": number | null,
@@ -222,6 +245,13 @@ Return ONLY a valid JSON object with the following structure (use null for missi
 IMPORTANT - MODEL RECOMMENDATION GUIDELINES:
 When the user describes what they want (e.g., "sporty sedan", "family SUV", "fuel efficient car"), you MUST recommend specific Toyota models that match their description. Use the "model" field for a single model, or "models" array for multiple matching models.
 If the user does not name a specific model and the description is generic, ALWAYS provide a "models" array with 3-5 diverse options that match the body style and attributes. Also include "bodyStyle" when the user mentions sedan/SUV/truck/minivan.
+
+DEALERSHIP SELECTION:
+- Map dealership/location mentions to:
+  * "Dallas" or "at dallas" → "dallas"
+  * "Plano" or "at plano" → "plano"
+- If user explicitly names a dealership/city, set "dealership" to that value and do NOT set the other.
+- If user asks for both or doesn't specify, leave "dealership" null (or use "dealerships": ["plano","dallas"] when both are desired).
 
 Toyota Model Guide:
 - SEDANS:
@@ -253,6 +283,7 @@ Toyota Model Guide:
   * Sports Car: GR86, Supra
 
 Examples:
+- "camrys at dallas" → model: "Camry", dealership: "dallas"
 - "sporty sedan that's fun to drive but fuel efficient" → bodyStyle: "sedan", models: ["Camry", "Corolla", "Prius", "Crown"], condition: null (show both)
 - "I want a brand new 2025 Camry" → model: "Camry", year: 2025, condition: "new"
 - "Looking for a used RAV4 under $30,000" → model: "RAV4", priceRange: {min: 0, max: 30000}, condition: "used"
@@ -404,6 +435,24 @@ function parseGeminiResponse(response: string): CarFilters {
 
     // Validate and normalize the filters
     const filters: CarFilters = {}
+
+    // Handle dealership selection
+    if (parsed.dealership && typeof parsed.dealership === "string") {
+      const d = parsed.dealership.toString().toLowerCase()
+      if (d === "dallas" || d === "plano") {
+        ;(filters as any).dealership = d
+        console.log("[Parse] Extracted dealership:", d)
+      }
+    }
+    if (parsed.dealerships && Array.isArray(parsed.dealerships) && parsed.dealerships.length > 0) {
+      const ds = parsed.dealerships
+        .map((x: any) => (typeof x === "string" ? x.toLowerCase() : ""))
+        .filter((x: string) => x === "plano" || x === "dallas")
+      if (ds.length > 0) {
+        ;(filters as any).dealerships = ds
+        console.log("[Parse] Extracted dealerships:", ds)
+      }
+    }
 
     // Handle priceRanges array (multiple ranges) - preferred format
     if (parsed.priceRanges && Array.isArray(parsed.priceRanges) && parsed.priceRanges.length > 0) {
