@@ -5,7 +5,8 @@ It blends AI-driven personalization, real-time dealership data, and voice intera
 
 # 🎥 Demo
 
-[![Watch the video](https://img.youtube.com/vi/SQBOrHg0HyY/maxresdefault.jpg)](https://www.youtube.com/watch?v=SQBOrHg0HyY)
+<video src="https://www.youtube.com/watch?v=SQBOrHg0HyY" controls></video>
+
 
 # 🌍 Overview
 
