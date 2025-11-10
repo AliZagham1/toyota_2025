@@ -3,9 +3,9 @@
 ToyoMatch reimagines how people discover, compare, and choose Toyota vehicles.
 It blends AI-driven personalization, real-time dealership data, and voice interaction into one seamless experience — making car exploration intuitive, informative, and environmentally conscious.
 
-# 🎥 Demo
+# 🎥 Demo (Click to Watch)
 
-<video src="https://www.youtube.com/watch?v=SQBOrHg0HyY" controls></video>
+[![Watch the video](https://img.youtube.com/vi/SQBOrHg0HyY/maxresdefault.jpg)](https://www.youtube.com/watch?v=SQBOrHg0HyY)
 
 
 # 🌍 Overview
